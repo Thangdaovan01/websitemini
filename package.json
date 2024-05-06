@@ -1,0 +1,38 @@
+{
+  "name": "websitemini",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Thangdaovan01/websitemini.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Thangdaovan01/websitemini/issues"
+  },
+  "homepage": "https://github.com/Thangdaovan01/websitemini#readme",
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-handlebars": "^7.1.2",
+    "method-override": "^3.0.0",
+    "moment": "^2.30.1",
+    "mongoose": "^8.3.3",
+    "mongoose-delete": "^1.0.2",
+    "node-sass": "^9.0.0",
+    "sass": "^1.76.0"
+  },
+  "devDependencies": {
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "mongoose-slug-generator": "^1.0.4",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.1.0",
+    "prettier": "^3.2.5"
+  }
+}
