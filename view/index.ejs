@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/post.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body> 
+    <div class="header-container">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark ">
+            <div class="container">
+                <a class="navbar-brand" href="/">WEBSITE</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+        
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <!-- <div class="nav-item">
+                        <a class="nav-link  mr-8" href="/admin"><i class="fa-solid fa-user-gear"></i></a>
+                    </div> -->
+        
+                    <form class="search-form" id="search_form" >
+                        <input type="text" name="searchText">
+                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </form>
+        
+                    <div class="logout-container">
+                        <button id="logout" title="Đăng xuất" class="btn logout-btn btn-link"><i class="fa-solid fa-right-from-bracket"></i></button>
+                    </div>
+                </div>
+            </div>
+        
+            
+        </nav>
+    </div>
+    <div class="post-container">
+        <div class="post-header-container">
+            <div class="post-header-container1">
+                <div class="image-container">
+                    <a href="link_to_other_page"><img src="" alt="Your Image"></a>
+                </div>
+                <div class="input-container">
+                    <input type="text" placeholder="Enter your content" >
+                    <!-- Placeholder for additional content -->
+                </div>
+            </div>
+            
+            <div class="icons-container">
+                <button id="createpostimage" title="Thêm ảnh" class="btn create-post-image-btn btn-link"><i class="fa-regular fa-image"></i> Thêm ảnh</button>
+                <button id="createpostvideo" title="Thêm video" class="btn create-post-video-btn btn-link"><i class="fa-solid fa-video"></i> Thêm video</button>
+                <button id="createfile" title="Thêm file" class="btn create-file-btn btn-link"><i class="fa-regular fa-file"></i> Tài liệu</button>
+            </div>
+        </div>
+
+        
+        <div class = post-content-container>
+
+        </div>
+    </div>
+    <div class="window"></div>   
+    <div class="description"></div>
+    <div id="notification" class="notification">
+        <span id="notificationText"></span>
+    </div>    
+</body>
+<script src="js/index.js"></script>
+<script src="js/logout.js"></script>
+</html>
