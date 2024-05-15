@@ -13,6 +13,8 @@ const User = new Schema({
     coverPicture: { type: String, default: 'https://media.sproutsocial.com/uploads/1c_facebook-cover-photo_clean@2x.png'},
     bio: {type: String, maxlength: 500},
     active: {type: Boolean, default: false },
+    birthday: { type: Date },
+
 }, {
     timestamps: true,
 });

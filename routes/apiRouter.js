@@ -17,6 +17,9 @@ apiRouter.delete('/post', apiController.deletePost);
 
 apiRouter.put('/userprofile', apiController.updateUserProfile);
 
+apiRouter.post('/like', apiController.createLike);
+apiRouter.delete('/like', apiController.deleteLike);
+
 
 const multer = require('multer');
 

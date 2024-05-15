@@ -51,6 +51,8 @@
     border-radius: 50%; /* Để tạo hình tròn */
 }
 
+
+
 .input-container {
     flex-grow: 1; 
 }
@@ -157,7 +159,7 @@
     border-radius: 5px;
 }
 
-.post-button, .update-post-button {
+.post-button, .update-post-button, .update-info-button {
     padding: 8px 20px;
     background-color: #007bff;
     color: #fff;
@@ -230,9 +232,6 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     padding: 5px 0;
-
-    /* top: 100%;  */
-    /* left: 0; */
     border: 1px solid #ccc; 
     z-index: 999; 
     width: 80px; 
@@ -344,3 +343,45 @@
 .user-page{
     cursor: pointer;
 }
+
+.post-create {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    color: var(--textColor);
+    font-size: 0.8em;
+    /* margin-top: 10px; */
+}
+.tooltip1 {
+    display: none;
+    position: absolute;
+    color: #fff;
+    width: 270px;
+    background-color: var(--textColor);
+    align-items: center;
+    border: none;
+    z-index: 999;
+    border-radius: 5px;
+    text-align: center;
+}
+
+
+
+.tooltip1.active {
+    display: block;
+}
+
+
+/* LIKE */
+.like-count{
+    color: var(--textColor);
+}
+
+/* Màu nút like khi đã được nhấn */
+.like-button.liked {
+    
+    color: var(--main1Color); /* Màu trắng cho chữ */
+    border: none;
+}
+
+

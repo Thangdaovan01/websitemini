@@ -9,8 +9,13 @@ const cloudinary = require('cloudinary').v2;
 const User = require('../models/User')
 const Excel = require('../models/Excel')
 const Post = require('../models/Post')
+const Like = require('../models/Like')
 
 const style = [];
+const usersArr = [];
+const postsArr = [];
+const likesArr = [];
+
 
 const login = async (req, res) => {
     try {
@@ -80,18 +85,22 @@ const getUser = async (req, res) => {
         const token = decodeToken(req.header('Authorize'));
         const existingUser = await User.findOne({ user_name: token.user_name });
         const users = await User.find({  });
+        const likes = await Like.find({  });
 
         const posts = await Post.find({  }).sort({ createdAt: -1 }).exec();
 
+        // usersArr = users;
+        // likesArr = likes;
+        // postsArr = posts;
+
         // console.log("posts",posts);
-        return res.status(200).json({user : existingUser, posts : posts, users: users });
+        return res.status(200).json({user : existingUser, posts : posts, users: users, likes: likes });
         
     } catch (error) {
         console.error(error);
-        return res.status(404).json('Server error');
+        return res.status(404).json({message: 'Server error'});
     }
 }
-
 
 const getStyle = async (req, res) => {
     try {
@@ -265,26 +274,22 @@ const uploadImage =  async (req, res) => {
 
 const updateUserProfile = async (req, res) => {
     try {
-        const updatePost = req.body;
+        const updateInfo = req.body;
         const token = req.header('Authorize');
-
+        console.log("updateInfo",updateInfo)
         if (!token) {
             return res.status(401).json({ message: 'Không xác thực được danh tính' })
         }
 
         const checkAcc = decodeToken(token);
         
-        if (updatePost.description == '' && updatePost.photo.length == 0 && updatePost.video.length == 0) {
+        if (updateInfo.fullname == '' && updateInfo.coverPicture == '' && updateInfo.profilePicture == 0) {
             return res.status(400).json({   message: 'Dữ liệu được gửi về Server không đầy đủ.' })
         }
 
-        const existingUser = await User.findOne({ user_name: checkAcc.user_name });
-        // console.log("existingUser", existingUser)
-        updatePost.createdBy = existingUser._id;
-        updatePost.updatedBy = existingUser._id;
-        // console.log("updatePost",updatePost);
+        const existingUser = await User.findOne({ _id: updateInfo._id });
 
-        await Post.updateOne({ _id: updatePost._id }, updatePost);
+        await User.updateOne({ _id: updateInfo._id }, updateInfo);
         
         return res.status(200).json({ message: 'Cập nhật thành công.' });
 
@@ -294,10 +299,66 @@ const updateUserProfile = async (req, res) => {
     }
 }
 
+const createLike = async (req, res) => {
+    try {
+        const createLike = req.body;
+        const token = req.header('Authorize');
+        console.log("createLike",createLike);
+        const likeArr = await Like.find({  });
+
+        if (!token) {
+            return res.status(401).json({ message: 'Không xác thực được danh tính' })
+        }
+
+        if (createLike.userId == '' && createLike.likePostId == 0) {
+            return res.status(400).json({ message: 'Dữ liệu được gửi về Server không đầy đủ.' })
+        }
+
+        const userIdToCheck = createLike.userId;
+        const likePostIdToCheck = createLike.likePostId;
+        const isExist = likeArr.some(item => item.userId == userIdToCheck && item.likePostId == likePostIdToCheck);
+
+        if (isExist) {
+            return res.status(400).json({ message: 'Bạn đã like bài viết này.' });
+        } else {
+            const like = new Like(createLike);
+            await like.save();
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+const deleteLike = async (req, res) => {
+    try {
+        // const idRow = req.body.idRow;
+        const deleteLike = req.body;
+        const likeArr = await Like.find({  });
+        const userIdToCheck = deleteLike.userId;
+        const likePostIdToCheck = deleteLike.likePostId;
+        const delLike = likeArr.filter(item => item.userId == userIdToCheck && item.likePostId == likePostIdToCheck);
+
+        console.log("delLike._id",delLike[0]._id);
+        const delLikeId = delLike[0]._id;
+        if (deleteLike.userId == '' && deleteLike.likePostId == 0) {
+            return res.status(400).json({ message: 'Thông tin về dữ liệu bạn muốn xóa không được gửi về server.'});
+        }
+        if(delLike){
+            await Like.deleteOne({ _id: delLikeId });
+        }
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi từ phía server' });
+    }
+}
+
 module.exports = {
     login, register, getUser,
     getStyle, 
     deletePost, createPost, updatePost, getRow,
     uploadImage, 
-    updateUserProfile
+    updateUserProfile,
+    createLike, deleteLike
 }
