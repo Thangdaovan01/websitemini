@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Profile Page</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/post.css">
+    <link rel="stylesheet" href="css/user.css">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
         integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -44,44 +45,57 @@
             
         </nav>
     </div>
-    <div class="post-container">
-        <div class="post-header-container">
-            <div class="post-header-container1">
-                <div class="image-container user-page" data-value=" ">
-                    <a href="link_to_other_page"><img src="" alt="Your Image"></a>
-                </div>
-                <div class="input-container">
-                    <input type="text" placeholder="Enter your content" >
-                    <!-- Placeholder for additional content -->
-                </div>
+    <div class="profile-container">
+        <!-- Ảnh bìa -->
+        <div class="cover-photo">
+            <!-- <img src="https://i.ytimg.com/vi/P01O1As5hLE/maxresdefault.jpg" alt="Cover Photo"> -->
+            <img src="" alt="Cover Photo">
+        </div>
+
+        <!-- Avatar và thông tin người dùng -->
+        <div class="user-info">
+            <div class="avatar">
+                <!-- <img src="https://media-cdn-v2.laodong.vn/Storage/NewsPortal/2021/10/24/967129/Anh-1.jpg" alt="Avatar"> -->
+                <img src="" alt="Avatar">
             </div>
-            
-            <div class="icons-container">
-                <button id="createpostimage" title="Thêm ảnh" class="btn create-post-image-btn btn-link"><i class="fa-regular fa-image"></i> Thêm ảnh</button>
-                <button id="createpostvideo" title="Thêm video" class="btn create-post-video-btn btn-link"><i class="fa-solid fa-video"></i> Thêm video</button>
-                <button id="createfile" title="Thêm file" class="btn create-file-btn btn-link"><i class="fa-regular fa-file"></i> Tài liệu</button>
+            <div class="user-details">
+                <h3 class="user-name"></h3>
+                <button class="btn add-friend-btn hidden">Thêm bạn bè</button>
+                <button class="btn edit-info-btn hidden">Chỉnh sửa thông tin</button>
             </div>
         </div>
 
-        <!-- <div>
-            <h3>Tải ảnh</h3>
-            <div class="image-upload">
-                <label for="image-upload">Chọn ảnh</label>
-                <input type="file" id="image-upload" accept="image/*" multiple>
-            </div>
-            <div class="preview-images">
-            </div>
-        </div> -->
-        <div>
-            <form id="imageUploadForm" enctype="multipart/form-data">
-                <input type="file" id="imageFile" name="imageFile" accept="image/*">
-                <button type="submit">Upload</button>
-            </form>
-            <div id="imagePreview"></div>
-        </div>
         
-        <div class = post-content-container>
-
+        <!-- Khối thông tin và bài đăng -->
+        <div class="main-content">
+            <div class="user-details-section">
+                <h5>Thông tin cá nhân</h5>
+                
+            </div>
+            <div class="user-posts-section">
+                
+                <div class="post-header-container hidden">
+                    <div class="post-header-container1">
+                        <div class="image-container user-page">
+                            <a href="link_to_other_page"><img src="" alt="Your Image"></a>
+                        </div>
+                        <div class="input-container">
+                            <input type="text" placeholder="Enter your content" >
+                            <!-- Placeholder for additional content -->
+                        </div>
+                    </div>
+                    
+                    <div class="icons-container">
+                        <button id="createpostimage" title="Thêm ảnh" class="btn create-post-image-btn btn-link"><i class="fa-regular fa-image"></i> Thêm ảnh</button>
+                        <button id="createpostvideo" title="Thêm video" class="btn create-post-video-btn btn-link"><i class="fa-solid fa-video"></i> Thêm video</button>
+                        <button id="createfile" title="Thêm file" class="btn create-file-btn btn-link"><i class="fa-regular fa-file"></i> Tài liệu</button>
+                    </div>
+                </div>
+                <div class="post">
+                    <h4>Bài đăng</h4>
+                </div>
+                
+            </div>
         </div>
     </div>
     <div class="window"></div>   
@@ -92,5 +106,4 @@
 </body>
 <script src="js/index.js"></script>
 <script src="js/logout.js"></script>
-<script src="js/upload.js"></script>
 </html>

@@ -9,6 +9,15 @@ const getLoginPage = async (req, res) => {
         return res.status(404).json('Server error');
     }
 }
+
+const getUserPage = async (req, res) => {
+    try {
+        return res.status(200).render('user');
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json('Server error');
+    }
+}
   
 const getHomepage = async (req, res) => {
     try {
@@ -30,5 +39,5 @@ const getAdminPage = async (req, res) => {
 
 module.exports = {
     getLoginPage, getHomepage,
-    getAdminPage
+    getAdminPage, getUserPage
 }

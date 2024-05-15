@@ -18,14 +18,6 @@ body {
   z-index: 9999;
 } 
 
-main {
-}
-:root{
-  --mainColor : #1d71be;
-  --borderColor: #d6d6d6;
-  --headerWeb: #ccc;
-}
-
 .post-container {
   width: 600px;
   margin: 0 auto;
