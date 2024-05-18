@@ -379,8 +379,12 @@
 
 /* Màu nút like khi đã được nhấn */
 .like-button.liked {
-    
     color: var(--main1Color); /* Màu trắng cho chữ */
+    border: none;
+}
+
+.liked {
+    color: var(--main1Color); 
     border: none;
 }
 

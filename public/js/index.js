@@ -561,40 +561,53 @@ $(document).ready(function() {
         });
     })
 
-    $(document).on('click','.like-button',  function(event) {
+    $(document).on('click','.like-button',  async function(event) {
         event.stopPropagation();
+        event.preventDefault();
         const postId = $(this).closest('.interaction-buttons').data('post-id');
-        const likesPost = likesArr.filter(item => item.likePostId == postId);
+        const likeArrClick = likesArr;
+        const likesPost = likeArrClick.filter(item => item.likePostId == postId);
+        // console.log("likeArrClick click",likeArrClick)
+        // console.log("postId click",postId)
+        // likeArrClick.filter(item => console.log("likeArrClick postId click",item.likePostId));
+        // console.log("likesPost click",likesPost)
+
         let totalLikes = likesPost.length;
-        console.log("totalLikes click",totalLikes)
+        // console.log("totalLikes click",totalLikes)
         $(this).toggleClass('liked');
-        const likeCount = document.querySelector('.like-count');
-        // const likeCountElement = document.querySelector(`.interaction-buttons-${postId} .like-count span`);
+        // const likeCount = document.querySelector('.like-count');
+        const likeCountElement = document.querySelector(`.interaction-buttons-${postId} .like-count span`);
         // likeCountElement.textContent = totalLikes + ' likes';
         
         
         if ($(this).hasClass('liked')) {
             totalLikes++;
+            console.log("totalLikes++",totalLikes)
+
             const createLike1 = {
                 userId: user._id,
                 likePostId: postId,
             }
-            createLike(createLike1, totalLikes);
+            createLike(createLike1);
         } else {
             totalLikes--;
+            console.log("totalLikes--",totalLikes)
+
             const deleteLike1 = {
                 userId: user._id,
                 likePostId: postId,
             }
-            deleteLike(deleteLike1, totalLikes);
+            deleteLike(deleteLike1);
         }
+        
         // likeCount.querySelector('span').textContent = totalLikes + ' likes';
         // likeCountElement.textContent = totalLikes + ' likes';
-
+        // const likeCountElement = document.querySelector(`.interaction-buttons-${createLike.likePostId} .like-count span`);
+        likeCountElement.textContent = totalLikes + ' likes';
         
     })
     
-
+    
 });
 
 async function fileReaderImage(file) {
@@ -719,8 +732,25 @@ async function showPost(posts) {
         var postCreatedAtTooltip = formatDateAndTooltip2(posts[i].createdAt);
         const likesPost = likesArr.filter(item => item.likePostId == posts[i]._id);
 
-        console.log("User showw", user._id); 
-        console.log("likesPost showw", likesPost);
+        var likedClass = '';
+        let container = document.querySelector(`.interaction-buttons-${posts[i]._id}`);
+        const isExist = likesPost.some(item => item.userId == user._id);
+        // console.log('likeButtonElement', likeButtonElement.outerHTML);
+        // let likeButton = container.querySelector('.like-button');
+
+        if (isExist) {
+            // likeButton.classList.add('liked');
+            likedClass = 'liked';
+            // console.log('likeButtonElement after', container.outerHTML);
+
+        } else {
+            // console.log('UserID không tồn tại trong mảng.');
+            // console.log('likeButtonElement after', likeButton.outerHTML);
+
+        }
+
+        // console.log("User showw", user._id); 
+        // console.log("likesPost showw", likesPost);
         
         // if (likesPost.length > 0) {
         //     $likeButtonElement.addClass('liked');
@@ -789,7 +819,7 @@ async function showPost(posts) {
                 </div>
                 <div class="interaction-buttons" data-post-id="${posts[i]._id}">
                     <!-- Nút like -->
-                    <button class="like-button"><i class="fa-solid fa-thumbs-up"></i> Like</button>
+                    <button class="like-button ${ likedClass }"><i class="fa-solid fa-thumbs-up"></i> Like</button>
                     <!-- Nút comment -->
                     <button class="comment-button"><i class="fa-solid fa-comment"></i> Comment</button>
                     <!-- Nút chia sẻ -->
@@ -819,25 +849,12 @@ async function showPost(posts) {
         `
         // console.log("postContent", postContent)
         postContentContainer.innerHTML = postContent;
-
-        const likeButtonElement = document.querySelector(`.interaction-buttons-${posts[i]._id} .interaction-buttons .like-button`);
-        // const $likeButtonElement = $(`.interaction-buttons-${posts[i]._id} .interaction-buttons .like-button`);
-        const isExist = likesPost.some(item => item.userId == user._id);
         
-        // console.log('likeButtonElement', likeButtonElement.outerHTML);
-
-        if (isExist) {
-            console.log('UserID tồn tại trong mảng.');
-            likeButtonElement.classList.add('liked');
-        // console.log('likeButtonElement after', likeButtonElement.outerHTML);
-
-            // $likeButtonElement.addClass('liked');
-        } else {
-            console.log('UserID không tồn tại trong mảng.');
-        }
     }
     // postContentContainer.innerHTML += postContent;
-
+    document.querySelectorAll('.like-button').forEach(button => {
+        console.log("button.classList.contains('liked')",button.classList.contains('liked'));
+    });
 }
 
 async function showUser(user, users, posts){
@@ -1253,9 +1270,7 @@ function formatDateAndTooltip2(dateStr) {
 }
 
 
-function createLike (createLike, totalLikes) {
-    console.log("totalLikes",totalLikes);
-
+async function createLike (createLike) {
     fetch('http://localhost:3000/api/like', {
         method: "POST",
         headers: {
@@ -1274,9 +1289,12 @@ function createLike (createLike, totalLikes) {
         });
     })
     .then(result => {
-        showNotification(result.message);
-        const likeCountElement = document.querySelector(`.interaction-buttons-${createLike.likePostId} .like-count span`);
-        likeCountElement.textContent = totalLikes + ' likes';
+        // showNotification(result.message);
+        console.log("likeArr createLike result",result);
+        likesArr = result.likeArr1;
+        return result.likeArr1;
+        // const likeCountElement = document.querySelector(`.interaction-buttons-${createLike.likePostId} .like-count span`);
+        // likeCountElement.textContent = totalLikes + ' likes';
     })
     .catch(error => {
         console.error('There was a problem with your fetch operation:', error);
@@ -1284,9 +1302,8 @@ function createLike (createLike, totalLikes) {
 
 }
 
-async function deleteLike(deleteLike, totalLikes) {
+async function deleteLike(deleteLike) {
     // if(confirm("confirm delete")){
-    console.log("deleteLike",deleteLike);
 
         fetch(`http://localhost:3000/api/like`, {
             method: 'DELETE',
@@ -1302,7 +1319,9 @@ async function deleteLike(deleteLike, totalLikes) {
             return response.json();
         })
         .then(result =>{
-            
+            console.log("likeArr createLike result",result.likeArr1);
+            likesArr = result.likeArr1;
+            // return result.likeArr1;
         })
         .catch(error => {
             console.error('There was a problem with your fetch operation:', error);

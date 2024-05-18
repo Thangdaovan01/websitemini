@@ -323,6 +323,8 @@ const createLike = async (req, res) => {
         } else {
             const like = new Like(createLike);
             await like.save();
+            const likeArr1 = await Like.find({  });
+            return res.status(200).json({ likeArr1: likeArr1 });
         }
     } catch (error) {
         console.error(error);
@@ -338,6 +340,7 @@ const deleteLike = async (req, res) => {
         const userIdToCheck = deleteLike.userId;
         const likePostIdToCheck = deleteLike.likePostId;
         const delLike = likeArr.filter(item => item.userId == userIdToCheck && item.likePostId == likePostIdToCheck);
+        const likeArr1 = likeArr.filter(item => !(item.userId == userIdToCheck && item.likePostId == likePostIdToCheck));
 
         console.log("delLike._id",delLike[0]._id);
         const delLikeId = delLike[0]._id;
@@ -346,6 +349,8 @@ const deleteLike = async (req, res) => {
         }
         if(delLike){
             await Like.deleteOne({ _id: delLikeId });
+            // const likeArr1 = await Like.find({  });
+            return res.status(200).json({ likeArr1: likeArr1 });
         }
         
     } catch (error) {
