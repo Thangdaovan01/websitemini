@@ -1,6 +1,7 @@
 var posts = [];
 var users = [];
 var likesArr = [];
+var commentsArr =  [];
 var user = {};
 var photoValues1 = [];
 var profilePicture2 = '';
@@ -32,8 +33,10 @@ $(document).ready(function() {
         console.log("users",users);
         posts = result.posts;
         likesArr = result.likes;
+        commentsArr = result.comments;
         // const imgElement = document.querySelector('.image-container img');
         // imgElement.src = `${user.profilePicture}`;
+
         showUser(user, users, posts);
         showPost(posts);
     })
@@ -364,7 +367,6 @@ $(document).ready(function() {
     //         console.error('Error uploading image to Cloudinary:', error);
     //     }
     // });
-
     $(document).on('click', function(event) {
         // Kiểm tra nếu click vào phần tử không phải là .create-row-container hoặc các phần tử con của nó
         if (!$(event.target).closest('.window').length && !$(event.target).is('.Xbuttonimage')) {
@@ -567,18 +569,10 @@ $(document).ready(function() {
         const postId = $(this).closest('.interaction-buttons').data('post-id');
         const likeArrClick = likesArr;
         const likesPost = likeArrClick.filter(item => item.likePostId == postId);
-        // console.log("likeArrClick click",likeArrClick)
-        // console.log("postId click",postId)
-        // likeArrClick.filter(item => console.log("likeArrClick postId click",item.likePostId));
-        // console.log("likesPost click",likesPost)
 
         let totalLikes = likesPost.length;
-        // console.log("totalLikes click",totalLikes)
         $(this).toggleClass('liked');
-        // const likeCount = document.querySelector('.like-count');
         const likeCountElement = document.querySelector(`.interaction-buttons-${postId} .like-count span`);
-        // likeCountElement.textContent = totalLikes + ' likes';
-        
         
         if ($(this).hasClass('liked')) {
             totalLikes++;
@@ -599,14 +593,250 @@ $(document).ready(function() {
             }
             deleteLike(deleteLike1);
         }
-        
-        // likeCount.querySelector('span').textContent = totalLikes + ' likes';
-        // likeCountElement.textContent = totalLikes + ' likes';
-        // const likeCountElement = document.querySelector(`.interaction-buttons-${createLike.likePostId} .like-count span`);
         likeCountElement.textContent = totalLikes + ' likes';
+    })
+
+    $(document).on('mouseover','.like-count',  function(event) {
+        event.stopPropagation();
+        // console.log("mouseover");
+        const postId = this.getAttribute('data-post-id');
+        const tooltips = document.querySelectorAll(`.people-like-${postId}`);
+        
+        tooltips.forEach(tooltip => {
+            tooltip.classList.add('active');
+        });
         
     })
-    
+
+    $(document).on('mouseout','.like-count',  function(event) {
+        event.stopPropagation();
+        const tooltips = document.querySelectorAll('.people-like');
+
+        tooltips.forEach(tooltip => {
+            tooltip.classList.remove('active'); 
+        });
+    })
+
+    $(document).on('click', '.send-comment-button', function(event) {
+        event.stopPropagation();
+        const postContainer = $(this).closest('.post-content-container1');
+        const postId = postContainer.data('post-id');
+
+        const commentInput = $(this).siblings('.comment-text');
+        const commentText = commentInput.val().trim();
+        const commentsContainer = $('.comments');
+        // console.log("commentText",commentText);
+        // console.log("userId",user._id);
+        // console.log("postId",postId);
+        var timeComment = formatTimeAgo(Date.now());
+
+
+        if (commentText !== '') {
+            // Tạo phần tử comment mới
+            const newCommentHtml = $(`
+            <div class="comment">
+                <div class="comment-header">
+                    <div class="comment-avatar">
+                        <img src="${user.profilePicture}" alt="Avatar">
+                    </div>
+                    <div class="comment-content">
+                        <span class="comment-author">${user.fullname}</span>
+                        <p>${commentText}</p>
+                    </div>
+                    <div class="comment-options">
+                        <span class="options-icon">...</span>
+                        <div class="options-menu">
+                            <div class="option edit">Chỉnh sửa</div>
+                            <div class="option delete">Xóa</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comment-meta">
+                    <span class="comment-date">${timeComment}</span>
+                    <button class="like-comment">Thích</button>
+                    <button class="reply-comment">Phản hồi</button>
+                </div>
+            </div>
+
+            `);
+            commentsContainer.append(newCommentHtml);
+            // Xóa nội dung của input
+            commentInput.val('');
+
+            var newComment = {
+                commentText: commentText,
+                userId: user._id,
+                postId: postId,
+            }
+            createNewComment(newComment); 
+
+        }else{
+            showNotification("Bạn chưa điền comment!");
+        }
+    });
+
+    $(document).on('keyup', '.comment-text', function(event) {
+        if (event.key === 'Enter') {
+            $(this).siblings('.send-comment-button').click();
+        }
+    });
+
+    $(document).on('mouseover','.comment-date',  function(event) {
+        event.stopPropagation();
+        const commentId = $(this).closest('.comment-meta').attr('data-comment-id');
+        console.log("commentId",commentId);
+
+        const tooltips = document.querySelectorAll(`.comment-date-tooltip1-${commentId}`);
+        
+        tooltips.forEach(tooltip => {
+            tooltip.classList.add('active');
+        });
+        
+    });
+
+    $(document).on('mouseout','.comment-date',  function(event) {
+        event.stopPropagation();
+        const commentId = $(this).closest('.comment-meta').attr('data-comment-id');
+        const tooltips = document.querySelectorAll(`.comment-date-tooltip1-${commentId}`);
+
+        tooltips.forEach(tooltip => {
+            tooltip.classList.remove('active'); 
+        });
+    });
+
+    //Khi nhấn nút để chỉnh sửa comment
+    $(document).on('click', '.options-icon', function(event) {
+        event.stopPropagation();
+        console.log('click .options-icon')
+        // console.log("user", user);
+        
+        const commentId = this.getAttribute('data-comment-id');
+        const userId = this.getAttribute('data-comment-user'); //userId của ngưỜi comment
+
+        var comments1 = findObjectById(commentsArr, commentId )
+        var userComment = findObjectById(users, comments1.userId )
+        
+        if(userComment._id == user._id){
+            const dropdownMenu = document.querySelector(`.options-menu-${commentId}`);
+       
+            if (dropdownMenu.classList.contains('active')) {
+                dropdownMenu.classList.remove('active');
+            } else {
+                document.querySelectorAll('.options-menu').forEach(item => {
+                    item.classList.remove('active');
+                });
+                dropdownMenu.classList.add('active');
+            }
+        } else {
+            showNotification("Bạn không thể chỉnh sửa comment này!");
+        }
+    }); 
+
+    $(document).on('click', function(event) {
+        // Kiểm tra nếu click không phải vào .options-icon hoặc bên trong .options-menu
+        if (!$(event.target).closest('.options-icon').length && !$(event.target).closest('.options-menu').length) {
+            document.querySelectorAll('.options-menu').forEach(item => {
+                item.classList.remove('active');
+            });
+        }
+    });
+
+    $(document).on('click', '.update-comment-btn', async function(event) {
+        event.stopPropagation();
+        console.log("update-comment-btn");
+        var commentId = $(this).data('value');
+        console.log("update-comment-btn commentId", commentId);
+
+        var commentElement = $('.comment-' + commentId);
+        var commentTextElement = commentElement.find('.comment-text1');
+        var commentEditElement = commentElement.find('.comment-edit');
+        var sendCommentEditButton = commentElement.find('.send-comment-edit');
+        console.log("update-comment-btn commentElement", commentElement);
+
+        // Hiển thị ô nhập và nút gửi, ẩn đoạn văn bản
+        commentTextElement.hide();
+        commentEditElement.show();
+        sendCommentEditButton.show();
+
+        // Đặt con trỏ vào ô nhập và chọn nội dung
+        commentEditElement.focus().select();
+    });
+
+    $(document).on('click', '.send-comment-edit', function(event) {
+        const commentId = $(this).closest('.comment').attr('data-comment-id');
+        var commentElement = $('.comment-' + commentId);
+        var commentEditElement = commentElement.find('.comment-edit').val();
+        var comment1 = findObjectById(commentsArr, commentId);
+        if(commentEditElement) {
+            var updateComment1 = {
+                _id: comment1._id,
+                commentText: commentEditElement,
+                userId: comment1.userId,
+                postId: comment1.postId,
+                isEdited: true
+            }
+            saveComment(comment1._id);
+            updateComment(updateComment1);
+        } else {
+            showNotification("Bạn chưa điền comment");
+        }
+        
+    });
+
+    $(document).on('click','.like-comment-button',  async function(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        const commentId = $(this).closest('.comment-meta').data('comment-id');
+        const likeCommentArrClick = likesArr;
+        const likesComment = likeCommentArrClick.filter(item => item.likeCommentId == commentId);
+
+        let totalLikes = likesComment.length;
+        $(this).toggleClass('liked-comment');
+        const likeCountElement = document.querySelector(`.like-comment-count-${commentId} span`);
+        
+        if ($(this).hasClass('liked-comment')) {
+            totalLikes++;
+            console.log("totalLikes++",totalLikes)
+
+            const createLike1 = {
+                userId: user._id,
+                likeCommentId: commentId,
+            }
+            createLike(createLike1);
+        } else {
+            totalLikes--;
+            console.log("totalLikes--",totalLikes)
+
+            const deleteLike1 = {
+                userId: user._id,
+                likeCommentId: commentId,
+            }
+            deleteLike(deleteLike1);
+        }
+        likeCountElement.textContent = totalLikes + ' likes';
+    })
+
+    $(document).on('mouseover','.like-comment-count',  function(event) {
+        event.stopPropagation();
+        // console.log("mouseover");
+        const commentId = this.getAttribute('data-comment-id');
+        const tooltips = document.querySelectorAll(`.people-like-comment-${commentId}`);
+        
+        tooltips.forEach(tooltip => {
+            tooltip.classList.add('active');
+        });
+        
+    })
+
+    $(document).on('mouseout','.like-comment-count',  function(event) {
+        event.stopPropagation();
+        const tooltips = document.querySelectorAll('.people-like-comment');
+
+        tooltips.forEach(tooltip => {
+            tooltip.classList.remove('active'); 
+        });
+    })
+
     
 });
 
@@ -713,11 +943,15 @@ function showNotification(message) {
 }
 
 async function showPost(posts) {
-    // console.log(" showPost posts",posts);
+    console.log(" showPost likesArr",likesArr);
+    console.log(" showPost commentsArr",commentsArr);
+    console.log(" showPost user",user);
     // console.log(" showPost user",user);
 
     var postContentContainer = document.querySelector('.post-content-container');
     var dataLength = posts.length;
+
+    // const commentsContainer = document.querySelector('.comments');
 
     const divElement = document.querySelector('.image-container.user-page');
 
@@ -727,38 +961,30 @@ async function showPost(posts) {
 
     var postContent = ``;
     for (let i = 0; i < dataLength; i++) {
-        var userCreate = findObjectById(users, posts[i].createdBy )
+        var userCreate = findObjectById(users, posts[i].createdBy );
         var postCreatedAt = formatDateAndTooltip1(posts[i].createdAt);
-        var postCreatedAtTooltip = formatDateAndTooltip2(posts[i].createdAt);
-        const likesPost = likesArr.filter(item => item.likePostId == posts[i]._id);
-
-        var likedClass = '';
-        let container = document.querySelector(`.interaction-buttons-${posts[i]._id}`);
-        const isExist = likesPost.some(item => item.userId == user._id);
-        // console.log('likeButtonElement', likeButtonElement.outerHTML);
-        // let likeButton = container.querySelector('.like-button');
-
-        if (isExist) {
-            // likeButton.classList.add('liked');
-            likedClass = 'liked';
-            // console.log('likeButtonElement after', container.outerHTML);
-
-        } else {
-            // console.log('UserID không tồn tại trong mảng.');
-            // console.log('likeButtonElement after', likeButton.outerHTML);
-
-        }
-
-        // console.log("User showw", user._id); 
-        // console.log("likesPost showw", likesPost);
+        var postCreatedAtTooltip = formatDateAndTooltip2(posts[i].createdAt); //Số lượt like
         
-        // if (likesPost.length > 0) {
-        //     $likeButtonElement.addClass('liked');
-        // }
-        // const likeCountElement = document.querySelector(`.interaction-buttons-${postId} .like-count span`);
-         
+        //Hiển thị những người like
+        var likesPost = likesArr.filter(item => item.likePostId == posts[i]._id);
+        var peoplelikesPost = likesPost.map(user => user.userId);
+        // console.log("likesPost",likesPost)
+        var fullnamePeopleLike = getFullnameFromUserId(peoplelikesPost, users);
+        var peoplelikesPostList = createPeopleLikeList(fullnamePeopleLike);
+        
+        //Hiển thị biểu tượng like
+        var likedClass = '';
+        var isExist = likesPost.some(item => item.userId == user._id);
+        if (isExist) {
+            likedClass = 'liked';
+        } 
+        //Lấy các giá trị comment
+        var commentsPost = commentsArr.filter(item => item.postId == posts[i]._id);
+        var commentHtml = createCommentsHTML(commentsPost, users, likesArr, user);
+        // console.log("commentHtml", commentHtml)
+
         postContent += `
-        <div class="post-content-container1" id="post-${ posts[i]._id }">
+        <div class="post-content-container1" id="post-${ posts[i]._id }" data-post-id="${posts[i]._id}">
             <!-- Khối thông tin người đăng -->
             <div class="author-info">
                 <div class="avatar-container image-container user-page" data-value="${ posts[i].createdBy }">
@@ -813,9 +1039,10 @@ async function showPost(posts) {
         
             <!-- Khối like, comment, share -->
             <div class="interaction-buttons-${posts[i]._id}">
-                <div class="like-count">
+                <div class="like-count" data-post-id="${posts[i]._id}">
                     <i class="fa-solid fa-thumbs-up"></i> 
                     <span> ${likesPost.length} likes </span>
+                    <div class="people-like people-like-${ posts[i]._id }">${peoplelikesPostList}</div>
                 </div>
                 <div class="interaction-buttons" data-post-id="${posts[i]._id}">
                     <!-- Nút like -->
@@ -828,20 +1055,16 @@ async function showPost(posts) {
             </div>
             <!-- Khối hiển thị comment -->
             <div class="comments-section">
-                <!-- Ô input comment -->
                 <div class="comment-input">
-                    <!-- Avatar của người comment -->
                     <div class="avatar-container">
                         <img src="${user.profilePicture}" alt="Avatar">
                     </div>
-                    <!-- Ô input comment -->
                     <input type="text" class="comment-text" placeholder="Viết bình luận...">
-                    <!-- Icon gửi comment -->
-                    <button class="send-comment"><i class="fa-solid fa-paper-plane"></i></button>
+                    <button class="send-comment-button"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
-                <!-- Các comment -->
-                <div class="comments">
+                <div class="comments comments-${ posts[i]._id }">
                     <!-- Các comment sẽ được hiển thị ở đây -->
+                    ${commentHtml}
                 </div>
             </div>
         </div>
@@ -851,10 +1074,7 @@ async function showPost(posts) {
         postContentContainer.innerHTML = postContent;
         
     }
-    // postContentContainer.innerHTML += postContent;
-    document.querySelectorAll('.like-button').forEach(button => {
-        console.log("button.classList.contains('liked')",button.classList.contains('liked'));
-    });
+    
 }
 
 async function showUser(user, users, posts){
@@ -917,17 +1137,25 @@ async function showUserPost(currUser, user, posts) {
     // console.log(" showPost user",user);
 
     const postsUser = posts.filter(item => item.createdBy === user._id);
-    console.log(" showPost ",postsUser);
+    // console.log(" showPost ",postsUser);
 
     var postContentContainer = document.querySelector('.user-posts-section');
     var dataLength = postsUser.length;
+    
     
 
     var postContent = ``;
     for (let i = 0; i < dataLength; i++) {
         var postCreatedAt = formatDateAndTooltip1(postsUser[i].createdAt);
         var postCreatedAtTooltip = formatDateAndTooltip2(postsUser[i].createdAt);
-        
+        const likesPost = likesArr.filter(item => item.likePostId == postsUser[i]._id);
+
+        var likedClass = '';
+        const isExist = likesPost.some(item => item.userId == user._id);
+
+        if (isExist) {
+            likedClass = 'liked';
+        } 
         postContent += `
         <div class="post-content-container1 post" id="post-${ postsUser[i]._id }">
             <!-- Khối thông tin người đăng -->
@@ -983,30 +1211,31 @@ async function showUserPost(currUser, user, posts) {
                 </div>
             </div>
         
-            <!-- Khối like, comment, share -->
-            <div class="interaction-buttons">
-                <!-- Nút like -->
-                <button class="like-button"><i class="fa-solid fa-thumbs-up"></i> Like</button>
-                <!-- Nút comment -->
-                <button class="comment-button"><i class="fa-solid fa-comment"></i> Comment</button>
-                <!-- Nút chia sẻ -->
-                <button class="share-button"><i class="fa-solid fa-share"></i> Share</button>
+            <div class="interaction-buttons-${postsUser[i]._id}">
+                <div class="like-count">
+                    <i class="fa-solid fa-thumbs-up"></i> 
+                    <span> ${likesPost.length} likes </span>
+                </div>
+                <div class="interaction-buttons" data-post-id="${postsUser[i]._id}">
+                    <!-- Nút like -->
+                    <button class="like-button ${ likedClass }"><i class="fa-solid fa-thumbs-up"></i> Like</button>
+                    <!-- Nút comment -->
+                    <button class="comment-button"><i class="fa-solid fa-comment"></i> Comment</button>
+                    <!-- Nút chia sẻ -->
+                    <button class="share-button"><i class="fa-solid fa-share"></i> Share</button>
+                </div>
             </div>
+            
         
             <!-- Khối hiển thị comment -->
             <div class="comments-section">
-                <!-- Ô input comment -->
                 <div class="comment-input">
-                    <!-- Avatar của người comment -->
                     <div class="avatar-container">
                         <img src="${currUser.profilePicture}" alt="Avatar">
                     </div>
-                    <!-- Ô input comment -->
                     <input type="text" class="comment-text" placeholder="Viết bình luận...">
-                    <!-- Icon gửi comment -->
-                    <button class="send-comment"><i class="fa-solid fa-paper-plane"></i></button>
+                    <button class="send-comment-button"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
-                <!-- Các comment -->
                 <div class="comments">
                     <!-- Các comment sẽ được hiển thị ở đây -->
                 </div>
@@ -1269,6 +1498,34 @@ function formatDateAndTooltip2(dateStr) {
     return detailedDate;
 }
 
+function formatTimeAgo(createdAt) {
+    const now = new Date();
+    const createdDate = new Date(createdAt);
+    const timeDiff = now - createdDate;
+    const seconds = Math.floor(timeDiff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
+
+    if (years > 0) {
+        return `${years} năm trước`;
+    } else if (months > 0) {
+        return `${months} tháng trước`;
+    } else if (weeks > 0) {
+        return `${weeks} tuần trước`;
+    } else if (days > 0) {
+        return `${days} ngày trước`;
+    } else if (hours > 0) {
+        return `${hours} giờ trước`;
+    } else if (minutes > 0) {
+        return `${minutes} phút trước`;
+    } else {
+        return `Vừa xong`;
+    }
+}
 
 async function createLike (createLike) {
     fetch('http://localhost:3000/api/like', {
@@ -1289,12 +1546,8 @@ async function createLike (createLike) {
         });
     })
     .then(result => {
-        // showNotification(result.message);
-        console.log("likeArr createLike result",result);
+        // console.log("likeArr createLike result",result);
         likesArr = result.likeArr1;
-        return result.likeArr1;
-        // const likeCountElement = document.querySelector(`.interaction-buttons-${createLike.likePostId} .like-count span`);
-        // likeCountElement.textContent = totalLikes + ' likes';
     })
     .catch(error => {
         console.error('There was a problem with your fetch operation:', error);
@@ -1303,8 +1556,6 @@ async function createLike (createLike) {
 }
 
 async function deleteLike(deleteLike) {
-    // if(confirm("confirm delete")){
-
         fetch(`http://localhost:3000/api/like`, {
             method: 'DELETE',
             headers: {
@@ -1319,12 +1570,212 @@ async function deleteLike(deleteLike) {
             return response.json();
         })
         .then(result =>{
-            console.log("likeArr createLike result",result.likeArr1);
+            // console.log("likeArr createLike result",result.likeArr1);
             likesArr = result.likeArr1;
-            // return result.likeArr1;
         })
         .catch(error => {
             console.error('There was a problem with your fetch operation:', error);
         });
+}
+
+function createPeopleLikeList(strings) {
+    // Kiểm tra nếu đầu vào không phải là một mảng hoặc mảng trống
+    if (!Array.isArray(strings) || strings.length === 0) {
+      return '';
+    }
+  
+    const htmlItems = strings.map(str => `<span>${str}</span><br>`);
+    const htmlString = htmlItems.join('');
+  
+    return `${htmlString}`;
+  }
+
+  function getFullnameFromUserId(userIds, usersArray) {
+    return userIds.map(userId => {
+      const user = usersArray.find(user => user._id === userId);
+      return user ? user.fullname : `User with ID ${userId} not found`;
+    });
+  }
+
+  function createNewComment (newComment) {
+    // console.log("token",token);
+    fetch('http://localhost:3000/api/comment', {
+        method: "POST",
+        headers: {
+            "Content-Type" : "application/json",
+            "Authorize" : token
+        },
+        body:JSON.stringify(newComment)
+    })
+    .then(response => {
+        return response.json().then(data => {
+            if (!response.ok) {
+                showNotification(data.message);
+                throw new Error('Network response was not ok');
+            }
+            return data;
+        });
+    })
+    .then(result => {
+        showNotification(result.message);
+
+    })
+    .catch(error => {
+        console.error('There was a problem with your fetch operation:', error);
+    });
+
+}
+
+async function deleteComment(idComment) {
+    // if(confirm("confirm delete")){
+        fetch(`http://localhost:3000/api/comment`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type':'application/json'
+            },
+            body: JSON.stringify({ idComment: idComment })
+        })
+        .then(response => {
+            if(!response.ok){
+                throw new Error("Network response not ok!");
+            }
+            return response.json();
+        })
+        .then(result =>{
+            console.log(result);
+            commentsArr = result.commentArr1;
+            console.log("commentsArr",commentsArr);
+            $(`.comment-${idComment}`).remove();
+        })
     // }
+}
+
+function updateComment (updateComment) {
+    console.log("UPDATE");
+
+    fetch('http://localhost:3000/api/comment', {
+        method: "PUT",
+        headers: {
+            "Content-Type" : "application/json",
+            "Authorize" : token
+        },
+        body:JSON.stringify(updateComment)
+    })
+    .then(response => {
+        return response.json().then(data => {
+            if (!response.ok) {
+                showNotification(data.message);
+                throw new Error('Network response was not ok');
+            }
+            return data;
+        });
+    })
+    .then(result => {
+
+        commentsArr = result.commentArr1;
+        console.log("commentsArr",commentsArr);
+    
+    })
+    .catch(error => {
+        console.error('There was a problem with your fetch operation:', error);
+    });
+}
+
+function createCommentsHTML(comments, users, likesArr, currUser) {
+    console.log(" createCommentsHTML 1 user",currUser);
+
+    return comments.map(comment => {
+        var currCommentId = comment._id;
+
+        //Hiển thị những người like
+        var likesComment = likesArr.filter(item => item.likeCommentId == currCommentId); //Lấy mảng từ likesArr có likeCommentId giống currCommentId
+        var peoplelikesPost = likesComment.map(likeComment => likeComment.userId);
+        // console.log("likesPost",likesPost)
+        var fullnamePeopleLike = getFullnameFromUserId(peoplelikesPost, users);
+        var peoplelikesCommentList = createPeopleLikeList(fullnamePeopleLike);
+        console.log("peoplelikesCommentList",peoplelikesCommentList);
+        console.log(" createCommentsHTML 2 user",currUser._id);
+
+        //Hiển thị biểu tượng like
+        var likedClass = '';
+        var isExist = likesComment.some(item => item.userId == currUser._id);
+        if (isExist) {
+            likedClass = 'liked-comment';
+        }
+
+        // Tìm user tương ứng với userId trong bình luận
+        const user = users.find(user => user._id == comment.userId);
+        // console.log("createCommentsHTML comment._id",comment._id);
+        var commentCreatedAt = comment.createdAt;
+        // console.log("createCommentsHTML comment.createAt",comment.createdAt);
+        var likeCommentVal = likesArr.filter(likeArr => likeArr.likeCommentId == currCommentId);
+        console.log("createCommentsHTML likeCommentVal",likeCommentVal);
+        var likeCommentValLength = likeCommentVal.length;
+
+        var timeComment = formatTimeAgo(commentCreatedAt);
+        var timeCommentTooltip = formatDateAndTooltip2(commentCreatedAt);
+
+
+        if (!user) return '';
+
+        // Tạo HTML cho bình luận
+        return `
+            <div class="comment comment-${currCommentId}" data-comment-id="${currCommentId}">
+                <div class="comment-header">
+                    <div class="comment-avatar">
+                        <img src="${user.profilePicture}" alt="Avatar">
+                    </div>
+                    <div class="comment-content">
+                        <span class="comment-author">${user.fullname}</span>
+                        <p class="comment-text1">${comment.commentText}</p>
+                        <textarea class="comment-edit" style="display:none;">${comment.commentText}</textarea>
+                        <button class="send-comment-edit" style="display:none;"><i class="fa-solid fa-paper-plane"></i></button>
+                        <button class="send-comment-button" style="display:none;"></button>
+
+                    </div>
+                    <div class="comment-options">
+                        <span class="options-icon" data-comment-id="${currCommentId}" data-comment-user="${user._id}">...</span>
+                        <div class="options-menu options-menu-${currCommentId}">
+                            <button id="update-comment" data-value="${currCommentId}" title="Cập nhật Comment" class="btn update-comment-btn btn-link">Chỉnh sửa</button>
+                            <button onclick="deleteComment('${currCommentId}');" title="Xoá" class="btn delete-btn btn-link">Xoá</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="comment-meta" data-comment-id = "${currCommentId}">
+                    <div>
+                        <span class="comment-date" data-timestamp="${comment.timestamp}">${timeComment}</span>
+                        <div class="comment-date-tooltip1 comment-date-tooltip1-${ currCommentId }"> <span>${timeCommentTooltip}</span></div>
+                    </div>
+                    <button class="like-comment-button ${likedClass}">Thích</button>
+                    <button class="reply-comment">Phản hồi</button>
+                    <span class = "isEdited-${comment.isEdited}"> Đã chỉnh sửa </span>
+                    <div class="like-comment-count like-comment-count-${currCommentId}" data-comment-id="${currCommentId}">
+                        <i class="fa-solid fa-thumbs-up"></i> 
+                        <span> ${likeCommentValLength} likes </span>
+                        <div class="people-like-comment people-like-comment-${ currCommentId }">${ peoplelikesCommentList }</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function saveComment(commentId) {
+    console.log("saveComment");
+
+    var commentElement = $('.comment-' + commentId);
+    var commentEditElement = commentElement.find('.comment-edit');
+    var commentTextElement = commentElement.find('.comment-text1');
+    var sendCommentEditButton = commentElement.find('.send-comment-edit');
+    var updatedComment = commentEditElement.val();
+    console.log("updatedComment",updatedComment);
+
+    // Thay đổi nội dung comment gốc
+    commentTextElement.text(updatedComment);
+
+    // Ẩn ô nhập và nút gửi, hiển thị lại đoạn văn bản
+    commentEditElement.hide();
+    sendCommentEditButton.hide();
+    commentTextElement.show();
+
 }

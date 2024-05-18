@@ -3,6 +3,8 @@ const { generateToken, decodeToken } = require('../middleware/authentication');
 // import { deleteImageFromStorage, multer, uploadImageToStorage } from '../storage/cloudinary';
 // const { deleteImageFromStorage, multer, uploadImageToStorage } = require('../storage/cloudinary');
 const { config } = require('../config/config.js');
+const mongoose = require('mongoose');
+const { ObjectId } = require('mongoose').Types;
 
 const cloudinary = require('cloudinary').v2;
 
@@ -10,6 +12,7 @@ const User = require('../models/User')
 const Excel = require('../models/Excel')
 const Post = require('../models/Post')
 const Like = require('../models/Like')
+const Comment = require('../models/Comment')
 
 const style = [];
 const usersArr = [];
@@ -86,15 +89,11 @@ const getUser = async (req, res) => {
         const existingUser = await User.findOne({ user_name: token.user_name });
         const users = await User.find({  });
         const likes = await Like.find({  });
-
         const posts = await Post.find({  }).sort({ createdAt: -1 }).exec();
-
-        // usersArr = users;
-        // likesArr = likes;
-        // postsArr = posts;
+        const comments = await Comment.find({  });
 
         // console.log("posts",posts);
-        return res.status(200).json({user : existingUser, posts : posts, users: users, likes: likes });
+        return res.status(200).json({user : existingUser, posts : posts, users: users, likes: likes, comments: comments });
         
     } catch (error) {
         console.error(error);
@@ -251,7 +250,6 @@ function getIdFromtUsername(username, array) {
     return null; // hoặc trả về một giá trị mặc định khác tùy theo yêu cầu của bạn
 }
 
-
 const uploadImage =  async (req, res) => {
     console.log("apiRouter.post");
 
@@ -310,22 +308,44 @@ const createLike = async (req, res) => {
             return res.status(401).json({ message: 'Không xác thực được danh tính' })
         }
 
-        if (createLike.userId == '' && createLike.likePostId == 0) {
-            return res.status(400).json({ message: 'Dữ liệu được gửi về Server không đầy đủ.' })
-        }
-
         const userIdToCheck = createLike.userId;
         const likePostIdToCheck = createLike.likePostId;
-        const isExist = likeArr.some(item => item.userId == userIdToCheck && item.likePostId == likePostIdToCheck);
+        const likeCommentIdToCheck = createLike.likeCommentId;
 
-        if (isExist) {
-            return res.status(400).json({ message: 'Bạn đã like bài viết này.' });
-        } else {
-            const like = new Like(createLike);
-            await like.save();
-            const likeArr1 = await Like.find({  });
-            return res.status(200).json({ likeArr1: likeArr1 });
+        if(likePostIdToCheck){
+            if (createLike.userId == '' && createLike.likePostId == '') {
+                return res.status(400).json({ message: 'Dữ liệu được gửi về Server không đầy đủ.' })
+            }
+    
+            const isExistPost = likeArr.some(item => item.userId == userIdToCheck && item.likePostId == likePostIdToCheck);
+    
+            if (isExistPost) {
+                return res.status(400).json({ message: 'Bạn đã like bài viết này.' });
+            } else {
+                const like = new Like(createLike);
+                await like.save();
+                const likeArr1 = await Like.find({  });
+                return res.status(200).json({ likeArr1: likeArr1 });
+            }
         }
+
+        if(likeCommentIdToCheck){
+            if (createLike.userId == '' && createLike.likeCommentId == '') {
+                return res.status(400).json({ message: 'Dữ liệu được gửi về Server không đầy đủ.' })
+            }
+    
+            const isExistComment = likeArr.some(item => item.userId == userIdToCheck && item.likeCommentId == likeCommentIdToCheck);
+    
+            if (isExistComment) {
+                return res.status(400).json({ message: 'Bạn đã like comment này.' });
+            } else {
+                const like1 = new Like(createLike);
+                await like1.save();
+                const likeArr1 = await Like.find({  });
+                return res.status(200).json({ likeArr1: likeArr1 });
+            }
+        }
+        
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Lỗi từ phía server.' });
@@ -359,11 +379,94 @@ const deleteLike = async (req, res) => {
     }
 }
 
+const createComment = async (req, res) => {
+    try {
+        const newComment = req.body;
+        const token = req.header('Authorize');
+        // console.log("token",token);
+        console.log("newComment",newComment);
+
+        if (!token) {
+            return res.status(401).json({ message: 'Không xác thực được danh tính' })
+        }
+
+        const checkAcc = decodeToken(token);
+        
+        const existingUser = await User.findOne({ user_name: checkAcc.user_name });
+        // console.log("existingUser", existingUser)
+
+        if (newComment.commentText == '') {
+            return res.status(400).json({ message: 'Bạn chưa điền Comment.' })
+        }
+
+        const comment = new Comment(newComment);
+        await comment.save();
+        return res.status(200).json({ message: 'Đã thêm comment mới.' });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+const updateComment = async (req, res) => {
+    try {
+        const updateComment = req.body;
+        const token = req.header('Authorize');
+
+        if (!token) {
+            return res.status(401).json({ message: 'Không xác thực được danh tính' })
+        }
+
+        if (updateComment.commentText == '') {
+            return res.status(400).json({   message: 'Dữ liệu được gửi về Server không đầy đủ.' })
+        }
+
+        console.log("updateComment", updateComment);
+
+        const commentArr = await Comment.find({  });
+        const commentValue = commentArr.find(element => element._id == updateComment._id);
+        if(commentValue){
+            await Comment.updateOne({ _id: updateComment._id }, updateComment);
+            const commentArr1 = await Comment.find({  });
+            return res.status(200).json({ commentArr1: commentArr1 });
+        }
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+const deleteComment = async (req, res) => {
+    try {
+        // const idRow = req.body.idRow;
+        const idComment = req.body.idComment;
+        console.log(idComment);
+        if (!idComment) {
+            return res.status(400).json({ message: 'Thông tin về dữ liệu bạn muốn xóa không được gửi về server.'});
+        }
+
+        const commentArr = await Comment.find({  });
+        const commentValue = commentArr.find(element => element._id == idComment);
+        const commentArr1 = commentArr.filter(element => element._id !== idComment);
+        
+        if(commentValue){
+            await Comment.deleteOne({ _id: idComment });
+            return res.status(200).json({ commentArr1: commentArr1 });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi từ phía server' });
+    }
+}
+
 module.exports = {
     login, register, getUser,
     getStyle, 
     deletePost, createPost, updatePost, getRow,
     uploadImage, 
     updateUserProfile,
-    createLike, deleteLike
+    createLike, deleteLike,
+    createComment, updateComment, deleteComment
 }

@@ -317,22 +317,24 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    margin-right: 10px;
+    margin-right: 5px;
 }
 
 .comment-input input[type="text"] {
     flex: 1;
-    padding: 10px;
-    border-radius: 5px;
+    padding: 6px;
+    border-radius: 20px;
     border: 1px solid #ccc;
 }
 
-.comment-input .send-comment {
+.comment-input .send-comment-button {
     background-color: #007bff;
     color: #fff;
     border: none;
-    padding: 10px;
-    border-radius: 5px;
+    padding: 6px;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
     cursor: pointer;
 }
 
@@ -388,4 +390,28 @@
     border: none;
 }
 
+.people-like {
+    display: none;
+    position: absolute;
+    color: #fff;
+    width: 100px;
+    background-color: var(--textColor);
+    align-items: center;
+    border: none;
+    z-index: 999;
+    border-radius: 5px;
+    padding: 0 5px;
+    font-size: 12px;
+    overflow: hidden;
+    text-align: left;
+    white-space: nowrap;
+}
 
+
+
+.people-like.active {
+    display: block;
+}
+
+
+/*COMMENT*/
