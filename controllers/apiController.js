@@ -13,6 +13,7 @@ const Excel = require('../models/Excel')
 const Post = require('../models/Post')
 const Like = require('../models/Like')
 const Comment = require('../models/Comment')
+const Friend = require('../models/Friend')
 
 const style = [];
 const usersArr = [];
@@ -89,11 +90,12 @@ const getUser = async (req, res) => {
         const existingUser = await User.findOne({ user_name: token.user_name });
         const users = await User.find({  });
         const likes = await Like.find({  });
+        const friends = await Friend.find({  });
         const posts = await Post.find({  }).sort({ createdAt: -1 }).exec();
         const comments = await Comment.find({  });
 
         // console.log("posts",posts);
-        return res.status(200).json({user : existingUser, posts : posts, users: users, likes: likes, comments: comments });
+        return res.status(200).json({user : existingUser, posts : posts, users: users, likes: likes, comments: comments, friends : friends });
         
     } catch (error) {
         console.error(error);
@@ -225,14 +227,39 @@ const deletePost = async (req, res) => {
         if (!idPost) {
             return res.status(400).json({ message: 'Thông tin về dữ liệu bạn muốn xóa không được gửi về server.'});
         }
+        const postsArr = await Post.find({  });
+        const delPost = postsArr.filter(item => item._id == idPost);
+        const postsArr1 = postsArr.filter(item => !(item._id == idPost));
+        const likesArr = await Like.find({  });
+        const likePost = likesArr.filter(item => item.likePostId == idPost);
+        const likePostIds = likePost.map(post => post._id);
+        const commentsArr = await Comment.find({  });
+        const commentPost = commentsArr.filter(item => item.postId == idPost);
+        const commentPostIds = commentPost.map(post => post._id);
 
-        Post.deleteOne({ _id: idPost })
-            .lean()
-            .then(() => {return res.status(200).json({message: "Xóa thành công"})}) //Khi thành công thì thực thi
-            .catch(error => {
-                console.error(error);
-                return res.status(500).json({ message: 'Đã xảy ra lỗi trong quá trình xử lý' });
-            });
+        if (likePostIds && likePostIds.length > 0) {
+            try {
+                await Like.deleteMany({ _id: { $in: likePostIds } });
+                console.log('Đã xóa thành công các bài viết!');
+            } catch (error) {
+                console.error('Có lỗi xảy ra khi xóa các bài viết:', error);
+            }
+        }
+
+        if (commentPostIds && commentPostIds.length > 0) {
+            try {
+                await Comment.deleteMany({ _id: { $in: commentPostIds } });
+                console.log('Đã xóa thành công các bài viết!');
+            } catch (error) {
+                console.error('Có lỗi xảy ra khi xóa các bài viết:', error);
+            }
+        }
+
+        if(delPost){
+            await Post.deleteOne({ _id: idPost });
+            return res.status(200).json({ postsArr1: postsArr1 });
+        }
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Lỗi từ phía server' });
@@ -452,9 +479,112 @@ const deleteComment = async (req, res) => {
         const commentValue = commentArr.find(element => element._id == idComment);
         const commentArr1 = commentArr.filter(element => element._id !== idComment);
         
+        const commentReply = commentArr.filter(item => item.repCommentId == idComment);
+        const commentReplyIds = commentReply.map(comment => comment._id);
+
+        if (commentReplyIds && commentReplyIds.length > 0) {
+            try {
+                await Comment.deleteMany({ _id: { $in: commentReplyIds } });
+                console.log('Đã xóa thành công các comment phản h!');
+            } catch (error) {
+                console.error('Có lỗi xảy ra khi xóa các bài viết:', error);
+            }
+        }
+
         if(commentValue){
             await Comment.deleteOne({ _id: idComment });
             return res.status(200).json({ commentArr1: commentArr1 });
+        }
+
+        // const commentsArr = await Comment.find({  });
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi từ phía server' });
+    }
+}
+
+const createFriend = async (req, res) => {
+    try {
+        const newFriend = req.body;
+        const token = req.header('Authorize');
+        // console.log("token",token);
+        // console.log("newFriend",newFriend);
+
+        if (!token) {
+            return res.status(401).json({ message: 'Không xác thực được danh tính' })
+        }
+
+        const checkAcc = decodeToken(token);
+        
+        // const existingUser = await User.findOne({ user_name: checkAcc.user_name });
+        // console.log("existingUser", existingUser)
+
+        // if (newComment.commentText == '') {
+        //     return res.status(400).json({ message: 'Bạn chưa điền Comment.' })
+        // }
+
+        const friend = new Friend(newFriend);
+        await friend.save();
+        return res.status(200).json({ message: 'Đã thêm comment mới.' });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+const updateFriend = async (req, res) => {
+    try {
+        const updateFriend = req.body;
+        const token = req.header('Authorize');
+
+        if (!token) {
+            return res.status(401).json({ message: 'Không xác thực được danh tính' })
+        }
+
+        // if (updateComment.commentText == '') {
+        //     return res.status(400).json({   message: 'Dữ liệu được gửi về Server không đầy đủ.' })
+        // }
+
+        console.log("updateFriend", updateFriend);
+        const updateFriendId = updateFriend._id;
+        const friendsArr = await Friend.find({  });
+        const friendsValue = friendsArr.find(element => element._id == updateFriendId);
+        if(friendsValue){
+            await Friend.updateOne({ _id: updateFriendId }, updateFriend);
+            const friendsArr1 = await Comment.find({  });
+            return res.status(200).json({ friendsArr: friendsArr1 });
+        }
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+const deleteFriend = async (req, res) => {
+    try {
+        // const idRow = req.body.idRow;
+        const cancelFriend = req.body;
+        var userId = cancelFriend.userId;
+        var friendId = cancelFriend.friendId;
+        // console.log("cancelFriend",cancelFriend);
+        if (!cancelFriend) {
+            return res.status(400).json({ message: 'Thông tin về dữ liệu bạn muốn xóa không được gửi về server.'});
+        }
+
+        const friendArr = await Friend.find({  });
+        const friend = friendArr.find(f => f.userId == userId && f.friendId == friendId);
+        const friend1 = friendArr.filter(f => !(f.userId == userId && f.friendId == friendId));
+        
+        // console.log("friend",friend);
+        // console.log("userId",userId);
+        // console.log("friendId",friendId);
+
+        if(friend){
+            await Friend.deleteOne({ _id: friend._id });
+            return res.status(200).json({ friendsArr: friend1 });
         }
     } catch (error) {
         console.error(error);
@@ -469,5 +599,6 @@ module.exports = {
     uploadImage, 
     updateUserProfile,
     createLike, deleteLike,
-    createComment, updateComment, deleteComment
+    createComment, updateComment, deleteComment,
+    createFriend, updateFriend, deleteFriend
 }

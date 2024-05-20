@@ -24,6 +24,11 @@ apiRouter.post('/comment', apiController.createComment);
 apiRouter.put('/comment', apiController.updateComment);
 apiRouter.delete('/comment', apiController.deleteComment);
 
+apiRouter.post('/friend', apiController.createFriend);
+apiRouter.put('/friend', apiController.updateFriend);
+apiRouter.delete('/friend', apiController.deleteFriend);
+
+
 const multer = require('multer');
 
 // Định cấu hình Multer để tải ảnh lên

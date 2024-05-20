@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/post.css">
     <link rel="stylesheet" href="css/user.css">
+    <link rel="stylesheet" href="css/comment.css">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
         integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -47,6 +48,7 @@
     </div>
     <div class="profile-container">
         <!-- Ảnh bìa -->
+        <h3>TRANG CÁ NHÂN</h3>
         <div class="cover-photo">
             <!-- <img src="https://i.ytimg.com/vi/P01O1As5hLE/maxresdefault.jpg" alt="Cover Photo"> -->
             <img src="" alt="Cover Photo">
@@ -62,17 +64,20 @@
                 <h3 class="user-name"></h3>
                 <button class="btn add-friend-btn hidden">Thêm bạn bè</button>
                 <button class="btn edit-info-btn hidden">Chỉnh sửa thông tin</button>
+                <button class="btn cancel-friend-btn hidden">Hủy kết bạn</button>
+                <button class="btn friends-btn hidden">Bạn bè</button>
+                <button class="btn friends-list-btn">Danh sách bạn bè</button>
+                <button class="btn posts-list-btn">Bài đăng</button>
+
             </div>
         </div>
 
-        
         <!-- Khối thông tin và bài đăng -->
         <div class="main-content">
             <div class="user-details-section">
                 <h5>Thông tin cá nhân</h5>
             </div>
-            <div class="user-posts-section post-content-container">
-                
+            <div class="user-posts-section 1post-content-container">
                 <div class="post-header-container hidden">
                     <div class="post-header-container1">
                         <div class="image-container user-page">
@@ -93,8 +98,18 @@
                 <div class="post">
                     <h4>Bài đăng</h4>
                 </div>
-                
             </div>
+        </div>
+
+        <div class="friends-list" id="friends-list">
+            <!-- Danh sách bạn bè sẽ được hiển thị ở đây -->
+            <h3>DANH SÁCH BẠN BÈ</h3>
+            <ul>
+                <li>Friend 1</li>
+                <li>Friend 2</li>
+                <li>Friend 3</li>
+                <!-- Các bạn bè khác -->
+            </ul>
         </div>
     </div>
     <div class="window"></div>   

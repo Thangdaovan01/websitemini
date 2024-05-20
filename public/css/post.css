@@ -414,4 +414,9 @@
 }
 
 
-/*COMMENT*/
+.main-content{
+    display: block;
+}
+.friends-list {
+    display: none;
+}

@@ -1,7 +1,8 @@
 var posts = [];
 var users = [];
 var likesArr = [];
-var commentsArr =  [];
+var commentsArr = [];
+var friendsArr = [];
 var user = {};
 var photoValues1 = [];
 var profilePicture2 = '';
@@ -34,10 +35,11 @@ $(document).ready(function() {
         posts = result.posts;
         likesArr = result.likes;
         commentsArr = result.comments;
+        friendsArr = result.friends;
         // const imgElement = document.querySelector('.image-container img');
         // imgElement.src = `${user.profilePicture}`;
 
-        showUser(user, users, posts);
+        showUser(user, users, posts, friendsArr);
         showPost(posts);
     })
     .catch(error => {
@@ -329,6 +331,7 @@ $(document).ready(function() {
         event.stopPropagation();
         var id = $(this).data('value');
         console.log("id",id);
+        // showUser(user, users, posts, friendsArr);
         window.location.href = 'http://localhost:3000/user?id='+id;
     });
 
@@ -793,8 +796,6 @@ $(document).ready(function() {
         
     });
 
-    
-
     $(document).on('click','.like-comment-button',  async function(event) {
         event.stopPropagation();
         event.preventDefault();
@@ -1034,13 +1035,227 @@ $(document).ready(function() {
         });
     })
 
+    $(document).on('click','.add-friend-btn',  function(event) {
+        event.stopPropagation();
+        const urlParams = new URLSearchParams(window.location.search);
+        const friendId = urlParams.get('id');
+        const $this = $(this);
+        var newFriend = {
+            userId: user._id,
+            friendId: friendId,
+            status: 'pending'
+        }
+
+        fetch('http://localhost:3000/api/friend', {
+            method: "POST",
+            headers: {
+                "Content-Type" : "application/json",
+                "Authorize" : token
+            },
+            body:JSON.stringify(newFriend)
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (!response.ok) {
+                    showNotification(data.message);
+                    throw new Error('Network response was not ok');
+                }
+                return data;
+            });
+        })
+        .then(result => {
+            // console.log("FRIEND THÀNH CÔNG",result);
+            $this.addClass('hidden');
+            $('.cancel-friend-btn').removeClass('hidden');
+        })
+        .catch(error => {
+            console.error('There was a problem with your fetch operation:', error);
+        });
+        
+    });
+
+    $(document).on('click','.cancel-friend-btn, .friends-btn',  function(event) {
+        event.stopPropagation();
+        console.log("Huý kết bạn");
+        const $this = $(this);
+        const urlParams = new URLSearchParams(window.location.search);
+        const friendId = urlParams.get('id');
+        console.log("friendId",friendId);
+
+        var cancelFriend = {
+            userId: user._id,
+            friendId: friendId,
+        }
+        if(confirm("Huỷ kết bạn")){
+            fetch(`http://localhost:3000/api/friend`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type':'application/json'
+                },
+                body: JSON.stringify(cancelFriend)
+            })
+            .then(response => {
+                if(!response.ok){
+                    throw new Error("Network response not ok!");
+                }
+                return response.json();
+            })
+            .then(result =>{
+                console.log(result);
+    
+                $this.addClass('hidden');
+                $('.add-friend-btn').removeClass('hidden');
+                friendsArr = result.friendsArr;
+            })
+            .catch(error => {
+                console.error('There was a problem with your fetch operation:', error);
+            });
+        }
+
+        
+    });
+
+    $(document).on('click','.friends-btn1',  function(event) {
+        event.stopPropagation();
+        console.log("Huý kết bạn");
+        const $this = $(this);
+        const senderFriendId = $(this).closest('.friend').attr('data-sender-friend-id');
+        const friendElementId = $(this).closest('.friend').attr('data-friend-id');
+
+        var cancelFriend = {
+            userId: senderFriendId,
+            friendId: user._id,
+        }
+        if(confirm("Huỷ kết bạn")){
+            fetch(`http://localhost:3000/api/friend`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type':'application/json'
+                },
+                body: JSON.stringify(cancelFriend)
+            })
+            .then(response => {
+                if(!response.ok){
+                    throw new Error("Network response not ok!");
+                }
+                return response.json();
+            })
+            .then(result =>{
+                console.log(result);
+    
+                $(this).closest(`.friend-${friendElementId}`).hide();
+                // $('.add-friend-btn').removeClass('hidden');
+                friendsArr = result.friendsArr;
+            })
+            .catch(error => {
+                console.error('There was a problem with your fetch operation:', error);
+            });
+        }
+
+        
+    });
+
+    $(document).on('click','.accepted-friends-btn',  function(event) {
+        event.stopPropagation();
+        // const urlParams = new URLSearchParams(window.location.search);
+        // const friendId = urlParams.get('id');
+
+        const senderFriendId = $(this).closest('.friend').attr('data-sender-friend-id');
+        const friendElementId = $(this).closest('.friend').attr('data-friend-id');
+
+        const $this = $(this);
+        var updateFriend = {
+            _id: friendElementId,
+            userId: senderFriendId,
+            friendId: user._id,
+            status: 'accepted'
+        }
+
+        fetch('http://localhost:3000/api/friend', {
+            method: "PUT",
+            headers: {
+                "Content-Type" : "application/json",
+                "Authorize" : token
+            },
+            body:JSON.stringify(updateFriend)
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (!response.ok) {
+                    showNotification(data.message);
+                    throw new Error('Network response was not ok');
+                }
+                return data;
+            });
+        })
+        .then(result => {
+            $(this).text('Bạn bè');
+            $(this).removeClass('accepted-friends-btn').addClass('friends-btn1');
+            friendsArr = result.friendsArr;
+        })
+        .catch(error => {
+            console.error('There was a problem with your fetch operation:', error);
+        });
+        
+    });
+
+    $(document).on('click','.friends-list-btn, .posts-list-btn',  function(event) {
+        event.stopPropagation();
+        const urlParams = new URLSearchParams(window.location.search);
+        const friendId = urlParams.get('id'); //id người mà mk đang xem trang cá nhân
+        $('.friends-list').toggle();
+        $('.main-content').toggle(); // Ẩn hoặc hiện các khối div khác
+        // array.find(item => item._id === id);
+        // const friendList = findObjectById(friendsArr,friendId);
+        const friendList = friendsArr.filter(friend => friend.friendId == friendId )
+        console.log("friendList",friendList);
+
+        displayFriendsList(friendList, friendId);
+    });
+
+    
+
+
     
 });
+
+// Hàm để hiển thị danh sách bạn bè
+function displayFriendsList(friends, currentUserId) {
+    const friendsList = document.getElementById('friends-list');
+
+    // Xóa dữ liệu cũ
+    friendsList.innerHTML = '';
+    console.log("friendsArr",friendsArr);
+    console.log("friends",friends);
+    console.log("currentUserId",currentUserId);
+
+    // Lặp qua danh sách bạn bè và thêm vào giao diện
+    friends.forEach(friend => {
+        var senderFriendId = friend.userId;
+        const senderFriend = findObjectById(users,senderFriendId);
+
+        // Chỉ hiển thị bạn bè nếu userId giống với id trên URL
+        if (friend.friendId == currentUserId) {
+            var friendElementHTML = `
+                <div class="friend friend-${friend._id}" data-friend-id="${friend._id}" data-sender-friend-id="${senderFriendId}">
+                    <img src="${senderFriend.profilePicture}" alt="">
+                    <span>${senderFriend.fullname}</span>
+                    <div class="actions">
+                        ${friend.status == 'pending' ? '<button class="btn accepted-friends-btn" >Chấp nhận</button>' : ''}
+                        ${friend.status == 'accepted' ? '<button class="btn friends-btn1">Bạn bè</button>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+        friendsList.innerHTML += friendElementHTML;
+    });
+}
+
 
 function createReplyCommentsHTML(replyComments, users, likesArr, currUser, postId) {
     return replyComments.map(replyComment => {
         var replyCurrCommentId = replyComment._id;
-        console.log("replyCurrCommentId", replyCurrCommentId)
+        // console.log("replyCurrCommentId", replyCurrCommentId)
         // Hiển thị những người like
         var likesComment = likesArr.filter(item => item.likeCommentId == replyCurrCommentId); //Lấy mảng từ likesArr có likeCommentId giống currCommentId
         var peoplelikesPost = likesComment.map(likeComment => likeComment.userId);
@@ -1069,11 +1284,11 @@ function createReplyCommentsHTML(replyComments, users, likesArr, currUser, postI
         return `
         <div class="reply reply-${replyCurrCommentId}" data-reply-comment-id="${replyCurrCommentId}">
             <div class="reply-header">
-                <div class="reply-avatar reply-comment-avatar">
+                <div class="reply-avatar reply-comment-avatar user-page" data-value="${user._id} ">
                     <img src="${user.profilePicture}" alt="Avatar">
                 </div>
                 <div class="reply-content">
-                    <span class="reply-author">${user.fullname}</span>
+                    <span class="reply-author user-page" data-value="${user._id} ">${user.fullname}</span>
                     <p class="comment-text2">${replyComment.commentText}</p>
                     <textarea class="reply-comment-edit" style="display:none;">${replyComment.commentText}</textarea>
                     <button class="send-reply-comment-edit" style="display:none;"><i class="fa-solid fa-paper-plane"></i></button>
@@ -1156,11 +1371,11 @@ function createCommentsHTML(comments, users, likesArr, currUser) {
         return `
             <div class="comment comment-${currCommentId}" data-comment-id="${currCommentId}" data-post-id="${postId}">
                 <div class="comment-header">
-                    <div class="comment-avatar">
+                    <div class="comment-avatar user-page" data-value="${user._id} ">
                         <img src="${user.profilePicture}" alt="Avatar">
                     </div>
                     <div class="comment-content">
-                        <span class="comment-author">${user.fullname}</span>
+                        <span class="comment-author user-page" data-value="${user._id} ">${user.fullname}</span>
                         <p class="comment-text1">${comment.commentText}</p>
                         <textarea class="comment-edit" style="display:none;">${comment.commentText}</textarea>
                         <button class="send-comment-edit" style="display:none;"><i class="fa-solid fa-paper-plane"></i></button>
@@ -1205,7 +1420,6 @@ function createCommentsHTML(comments, users, likesArr, currUser) {
         `;
     }).join('');
 }
-
 
 async function fileReaderImage(file) {
     console.log("fileReaderImage");
@@ -1310,11 +1524,9 @@ function showNotification(message) {
 }
 
 async function showPost(posts) {
+    console.log(" showPost likesArr");
     // console.log(" showPost likesArr",likesArr);
-    // console.log(" showPost commentsArr",commentsArr);
-    // console.log(" showPost user",user);
-    // console.log(" showPost user",user);
-
+    
     var postContentContainer = document.querySelector('.post-content-container');
     var dataLength = posts.length;
 
@@ -1423,7 +1635,7 @@ async function showPost(posts) {
             <!-- Khối hiển thị comment -->
             <div class="comments-section">
                 <div class="comment-input">
-                    <div class="avatar-container">
+                    <div class="avatar-container user-page" data-value="${user._id} ">
                         <img src="${user.profilePicture}" alt="Avatar">
                     </div>
                     <input type="text" class="comment-text" placeholder="Viết bình luận...">
@@ -1444,29 +1656,49 @@ async function showPost(posts) {
     
 }
 
-async function showUser(user, users, posts){
+async function showUser(user, users, posts, friendsArr){
     const imgElement = document.querySelector('.image-container img');
     imgElement.src = `${user.profilePicture}`;
 
+    console.log('showUser');
     // console.log('User:', user);
     // console.log('Users Aray:', users);
     // console.log('Posts Array:', posts);
 
-    var userId = getQueryParam('id');
-    // console.log('User ID:', userId, user._id);
-
-    var UserProfile = findObjectById(users, userId);
+    var userId = getQueryParam('id'); //user mà đang xem trang cá nhân của họ
+    console.log('User ID:', userId, user._id);
     
+    const friendVal = friendsArr.find(f => f.userId === user._id && f.friendId === userId);
+    console.log('friendVal', friendVal);
+
+    var UserProfile = findObjectById(users, userId); //mảng của người mà mk đang xem trang cá nhân
+    
+    //Nếu người dùng đăng nhập đang xem trang của mình
     if (userId === user._id) {
         document.querySelector('.add-friend-btn').classList.add('hidden');
         document.querySelector('.edit-info-btn').classList.remove('hidden');
         document.querySelector('.post-header-container').classList.remove('hidden');
 
     } else {
-        document.querySelector('.add-friend-btn').classList.remove('hidden');
         document.querySelector('.edit-info-btn').classList.add('hidden');
         document.querySelector('.post-header-container').classList.add('hidden');
+        if(friendVal){
+            var friendValStatus = friendVal.status;
 
+            if(friendValStatus == 'pending'){
+                document.querySelector('.add-friend-btn').classList.add('hidden');
+                document.querySelector('.cancel-friend-btn').classList.remove('hidden');
+                document.querySelector('.friends-btn').classList.add('hidden');
+            }
+
+            if(friendValStatus == 'accepted'){
+                document.querySelector('.add-friend-btn').classList.add('hidden');
+                document.querySelector('.cancel-friend-btn').classList.add('hidden');
+                document.querySelector('.friends-btn').classList.remove('hidden');
+            }
+        } else {
+            document.querySelector('.add-friend-btn').classList.remove('hidden');
+        }
     }
 
     const coverPhotoElement = document.querySelector('.profile-container .cover-photo img');
@@ -1500,15 +1732,20 @@ async function showUser(user, users, posts){
 }
 
 async function showUserPost(currUser, user, posts) {
-    // console.log(" showPost posts",posts);
+    console.log(" showUserPost");
     // console.log(" showPost user",user);
 
-    const postsUser = posts.filter(item => item.createdBy === user._id);
-    // console.log(" showPost ",postsUser);
+    const postsUser = posts.filter(item => item.createdBy == user._id);
+    // console.log(" user._id ",user._id);
+    
+    console.log(" postsUser ",postsUser);
+    // console.log(" currUser ",currUser);
+    // console.log(" user ",user);
 
     var postContentContainer = document.querySelector('.user-posts-section');
     var dataLength = postsUser.length;
     
+    console.log(" dataLength ",dataLength);
     
 
     var postContent = ``;
