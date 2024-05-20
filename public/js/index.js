@@ -762,6 +762,16 @@ $(document).ready(function() {
         commentEditElement.focus().select();
     });
 
+    $(document).on('click', function(event) {
+        if (!$(event.target).closest('.comment-edit, .send-comment-edit').length) {
+            // $('.reply-input-container').hide();
+            $('.comment-edit').hide();
+            $('.send-comment-edit').hide();
+            $('.comment-text1').show();
+
+        }
+    });
+
     $(document).on('click', '.send-comment-edit', function(event) {
         const commentId = $(this).closest('.comment').attr('data-comment-id');
         var commentElement = $('.comment-' + commentId);
@@ -782,6 +792,8 @@ $(document).ready(function() {
         }
         
     });
+
+    
 
     $(document).on('click','.like-comment-button',  async function(event) {
         event.stopPropagation();
@@ -837,8 +849,363 @@ $(document).ready(function() {
         });
     })
 
+    $(document).on('click', '.reply-comment', function(event) {
+        event.stopPropagation();
+        console.log("reply-comment");
+        var commentId = $(this).closest('.comment-meta').data('comment-id');
+        console.log("commentId",commentId);
+
+        var replyInputContainer = $(`.reply-input-container-${commentId}`);
+        replyInputContainer.toggle();
+
+        
+    });
+
+    $(document).on('click', function(event) {
+        // Check if the click was outside the reply input container
+        if (!$(event.target).closest('.reply-input-container, .reply-comment').length) {
+            $('.reply-input-container').hide();
+        }
+    });
+
+    $(document).on('click', '.send-reply-button', function(event) {
+        event.stopPropagation();
+        
+        const commentId = $(this).closest('.comment').attr('data-comment-id');
+        const postId = $(this).closest('.comment').attr('data-post-id');
+        var timeReplyComment = formatTimeAgo(Date.now());
+        var replyCommentInput = $('.reply-input-container-' + commentId + ' .reply-input');
+        var replyCommentText = replyCommentInput.val().trim();
+
+        if (replyCommentText !== '') {
+            // Tạo phần tử comment mới
+            var replyHtml = `
+            <div class="reply">
+                <div class="reply-header">
+                    <div class="reply-avatar reply-comment-avatar">
+                        <img src="${user.profilePicture}" alt="Avatar">
+                    </div>
+                    <div class="reply-content">
+                        <span class="reply-author">${user.fullname}</span>
+                        <p>${replyCommentText}</p>
+                    </div>
+                    <div class="reply-options">
+                        <span class="options-icon">...</span>
+                        <div class="options-menu">
+                            <div class="option edit">Chỉnh sửa</div>
+                            <div class="option delete">Xóa</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="reply-meta">
+                    <span class="reply-date">${timeReplyComment}</span>
+                    <button class="like-reply-button">Thích</button>
+                    <div class="like-comment-count like-comment-count-${commentId}" data-comment-id="${commentId}">
+                        <i class="fa-solid fa-thumbs-up"></i> 
+                        <span> 0 likes </span>
+                        <div class="people-like-comment people-like-comment-${ commentId }"></div>
+                    </div>
+                </div>
+            </div>
+            `;
+            $('.replies-container-' + commentId).append(replyHtml);
+            replyCommentInput.val('');
+            $('.reply-input-container-' + commentId).hide();
+
+            var newComment = {
+                commentText: replyCommentText,
+                userId: user._id,
+                postId: postId,
+                repCommentId: commentId,
+            }
+            createNewComment(newComment); 
+
+        }else{
+            showNotification("Bạn chưa điền comment!");
+        }
+    });
+
+    $(document).on('click', '.update-reply-comment-btn', async function(event) {
+        event.stopPropagation();
+        console.log("update-reply-comment-btn");
+        var replyCommentId = $(this).data('value');
+        console.log("update-comment-btn replyCommentId", replyCommentId);
+
+        var commentElement = $('.reply-' + replyCommentId);
+        var commentTextElement = commentElement.find('.comment-text2');
+        var commentEditElement = commentElement.find('.reply-comment-edit');
+        var sendCommentEditButton = commentElement.find('.send-reply-comment-edit');
+        // console.log("update-comment-btn commentElement", commentElement);
+
+        // Hiển thị ô nhập và nút gửi, ẩn đoạn văn bản
+        commentTextElement.hide();
+        commentEditElement.show();
+        sendCommentEditButton.show();
+
+        // Đặt con trỏ vào ô nhập và chọn nội dung
+        commentEditElement.focus().select();
+    });
+
+    $(document).on('click', function(event) {
+        if (!$(event.target).closest('.reply-comment-edit, .send-reply-comment-edit').length) {
+            // $('.reply-input-container').hide();
+            $('.reply-comment-edit').hide();
+            $('.send-reply-comment-edit').hide();
+            $('.comment-text2').show();
+        }
+    });
+
+    $(document).on('click', '.send-reply-comment-edit', function(event) {
+        const replyCommentId = $(this).closest('.reply').attr('data-reply-comment-id');
+        var commentElement = $('.reply-' + replyCommentId);
+        var commentEditElement = commentElement.find('.reply-comment-edit').val();
+        var comment1 = findObjectById(commentsArr, replyCommentId);
+        
+        if(commentEditElement) {
+            var updateComment1 = {
+                _id: comment1._id,
+                commentText: commentEditElement,
+                userId: comment1.userId,
+                postId: comment1.postId,
+                repCommentId: comment1.repCommentId,
+                isEdited: true
+            }
+            console.log("send-reply-comment-edit updateComment1",updateComment1);
+
+            saveReplyComment(comment1._id);
+            updateComment(updateComment1);
+        } else {
+            showNotification("Bạn chưa điền comment");
+        }
+        
+    });
+
+    $(document).on('click','.like-reply-comment-button',  async function(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        const replyCommentId = $(this).closest('.reply-meta').data('reply-comment-id');
+        const likeCommentArrClick = likesArr;
+        const likesComment = likeCommentArrClick.filter(item => item.likeCommentId == replyCommentId);
+        console.log("replyCommentId",replyCommentId)
+        let totalLikes = likesComment.length;
+        $(this).toggleClass('liked-comment');
+        const likeCountElement = document.querySelector(`.like-reply-comment-count-${replyCommentId} span`);
+        
+        if ($(this).hasClass('liked-comment')) {
+            totalLikes++;
+            // console.log("totalLikes++",totalLikes)
+
+            const createLike1 = {
+                userId: user._id,
+                likeCommentId: replyCommentId,
+            }
+            createLike(createLike1);
+        } else {
+            totalLikes--;
+            // console.log("totalLikes--",totalLikes)
+
+            const deleteLike1 = {
+                userId: user._id,
+                likeCommentId: replyCommentId,
+            }
+            deleteLike(deleteLike1);
+        }
+        likeCountElement.textContent = totalLikes + ' likes';
+    })
+
+    $(document).on('mouseover','.like-reply-comment-count',  function(event) {
+        event.stopPropagation();
+        // console.log("mouseover");
+        const commentId = this.getAttribute('data-comment-id');
+        const tooltips = document.querySelectorAll(`.people-like-comment-${commentId}`);
+        
+        tooltips.forEach(tooltip => {
+            tooltip.classList.add('active');
+        });
+        
+    })
+
+    $(document).on('mouseout','.like-reply-comment-count',  function(event) {
+        event.stopPropagation();
+        const tooltips = document.querySelectorAll('.people-like-comment');
+
+        tooltips.forEach(tooltip => {
+            tooltip.classList.remove('active'); 
+        });
+    })
+
     
 });
+
+function createReplyCommentsHTML(replyComments, users, likesArr, currUser, postId) {
+    return replyComments.map(replyComment => {
+        var replyCurrCommentId = replyComment._id;
+        console.log("replyCurrCommentId", replyCurrCommentId)
+        // Hiển thị những người like
+        var likesComment = likesArr.filter(item => item.likeCommentId == replyCurrCommentId); //Lấy mảng từ likesArr có likeCommentId giống currCommentId
+        var peoplelikesPost = likesComment.map(likeComment => likeComment.userId);
+        var fullnamePeopleLike = getFullnameFromUserId(peoplelikesPost, users);
+        var peoplelikesCommentList = createPeopleLikeList(fullnamePeopleLike);
+
+        //Hiển thị biểu tượng like
+        var likedClass = '';
+        var isExist = likesComment.some(item => item.userId == currUser._id);
+        if (isExist) {
+            likedClass = 'liked-comment';
+        }
+
+        // Tìm user tương ứng với userId trong bình luận
+        const user = users.find(user => user._id == replyComment.userId);
+        var replyCommentCreatedAt = replyComment.createdAt;
+        var likeReplyCommentVal = likesArr.filter(likeArr => likeArr.likeCommentId == replyCurrCommentId);
+        var likeReplyCommentValLength = likeReplyCommentVal.length;
+
+        var timeReplyComment = formatTimeAgo(replyCommentCreatedAt);
+        var timeReplyCommentTooltip = formatDateAndTooltip2(replyCommentCreatedAt);
+
+
+        if (!user) return '';
+        // Tạo HTML cho bình luận
+        return `
+        <div class="reply reply-${replyCurrCommentId}" data-reply-comment-id="${replyCurrCommentId}">
+            <div class="reply-header">
+                <div class="reply-avatar reply-comment-avatar">
+                    <img src="${user.profilePicture}" alt="Avatar">
+                </div>
+                <div class="reply-content">
+                    <span class="reply-author">${user.fullname}</span>
+                    <p class="comment-text2">${replyComment.commentText}</p>
+                    <textarea class="reply-comment-edit" style="display:none;">${replyComment.commentText}</textarea>
+                    <button class="send-reply-comment-edit" style="display:none;"><i class="fa-solid fa-paper-plane"></i></button>
+
+                </div>
+                <div class="reply-options">
+                    <span class="options-icon" data-comment-id="${replyCurrCommentId}" data-comment-user="${user._id}">...</span>
+                    <div class="options-menu options-menu-${replyCurrCommentId}"">
+                        <button id="update-reply-comment" data-value="${replyCurrCommentId}" title="Cập nhật Comment" class="btn update-reply-comment-btn btn-link">Chỉnh sửa</button>
+                        <button onclick="deleteComment('${replyCurrCommentId}');" title="Xoá" class="btn delete-btn btn-link">Xoá</button>
+                    </div>
+                </div>
+            </div>
+            <div class="reply-meta" data-reply-comment-id = "${replyCurrCommentId}">
+                <div>
+                    <span class="reply-date">${timeReplyComment}</span>
+                    <div class="comment-date-tooltip1 comment-date-tooltip1-${ replyCurrCommentId }"> <span>${timeReplyCommentTooltip}</span></div>
+                </div>
+
+                <button class="like-reply-comment-button ${likedClass}">Thích</button>
+                <span class = "isEdited-${replyComment.isEdited}"> Đã chỉnh sửa </span>
+                    
+                <div class="like-reply-comment-count like-reply-comment-count-${replyCurrCommentId}" data-reply-comment-id="${replyCurrCommentId}">
+                    <i class="fa-solid fa-thumbs-up"></i> 
+                    <span> ${likeReplyCommentValLength} likes </span>
+                    <div class="people-like-reply-comment people-like-reply-comment-${ replyCurrCommentId }">${ peoplelikesCommentList }</div>
+                </div>
+            </div>
+        </div>
+        `;
+    }).join('');
+}
+
+function createCommentsHTML(comments, users, likesArr, currUser) {
+    // console.log("comments 123",comments)
+    const commentsWithoutReplies = comments.filter(comment => !comment.hasOwnProperty('repCommentId'));
+    const commentsWithReplies = comments.filter(comment => comment.hasOwnProperty('repCommentId'));
+    return commentsWithoutReplies.map(comment => {
+        var currCommentId = comment._id;
+
+        //Hiển thị những người like
+        var likesComment = likesArr.filter(item => item.likeCommentId == currCommentId); //Lấy mảng từ likesArr có likeCommentId giống currCommentId
+        var peoplelikesPost = likesComment.map(likeComment => likeComment.userId);
+        var fullnamePeopleLike = getFullnameFromUserId(peoplelikesPost, users);
+        var peoplelikesCommentList = createPeopleLikeList(fullnamePeopleLike);
+
+        //Hiển thị biểu tượng like
+        var likedClass = '';
+        var isExist = likesComment.some(item => item.userId == currUser._id);
+        if (isExist) {
+            likedClass = 'liked-comment';
+        }
+
+        // Tìm user tương ứng với userId trong bình luận
+        const user = users.find(user => user._id == comment.userId);
+        var commentCreatedAt = comment.createdAt;
+        var likeCommentVal = likesArr.filter(likeArr => likeArr.likeCommentId == currCommentId);
+        var likeCommentValLength = likeCommentVal.length;
+
+        var timeComment = formatTimeAgo(commentCreatedAt);
+        var timeCommentTooltip = formatDateAndTooltip2(commentCreatedAt);
+
+        //Lấy các giá trị reply-comment
+        var replyCommentsPost = commentsWithReplies.filter(item => item.repCommentId == currCommentId);
+        // console.log("createCommentsHTML currCommentId",currCommentId)
+        // console.log("comments",comments);
+        const postId = comments[0].postId;
+        // console.log("postId",postId);
+        // console.log("replyCommentsPost",replyCommentsPost)
+        var replyCommentHtml = createReplyCommentsHTML(replyCommentsPost, users, likesArr, user, postId);
+        
+        //Lấy giá trị postId post-content-container1
+        // var postContentContainer = document.querySelector('.post-content-container1');
+        // // var postContentContainer1 = document.querySelector('.post-content-container1').data('post-id');
+        // console.log("postContentContainer",postContentContainer); 
+        // // console.log("postContentContainer1",postContentContainer1); 
+
+        if (!user) return '';
+        // Tạo HTML cho bình luận
+        return `
+            <div class="comment comment-${currCommentId}" data-comment-id="${currCommentId}" data-post-id="${postId}">
+                <div class="comment-header">
+                    <div class="comment-avatar">
+                        <img src="${user.profilePicture}" alt="Avatar">
+                    </div>
+                    <div class="comment-content">
+                        <span class="comment-author">${user.fullname}</span>
+                        <p class="comment-text1">${comment.commentText}</p>
+                        <textarea class="comment-edit" style="display:none;">${comment.commentText}</textarea>
+                        <button class="send-comment-edit" style="display:none;"><i class="fa-solid fa-paper-plane"></i></button>
+
+                    </div>
+                    <div class="comment-options">
+                        <span class="options-icon" data-comment-id="${currCommentId}" data-comment-user="${user._id}">...</span>
+                        <div class="options-menu options-menu-${currCommentId}">
+                            <button id="update-comment" data-value="${currCommentId}" title="Cập nhật Comment" class="btn update-comment-btn btn-link">Chỉnh sửa</button>
+                            <button onclick="deleteComment('${currCommentId}');" title="Xoá" class="btn delete-btn btn-link">Xoá</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="comment-meta" data-comment-id = "${currCommentId}">
+                    <div>
+                        <span class="comment-date" data-timestamp="${comment.timestamp}">${timeComment}</span>
+                        <div class="comment-date-tooltip1 comment-date-tooltip1-${ currCommentId }"> <span>${timeCommentTooltip}</span></div>
+                    </div>
+                    <button class="like-comment-button ${likedClass}">Thích</button>
+                    <button class="reply-comment">Phản hồi</button>
+                    <span class = "isEdited-${comment.isEdited}"> Đã chỉnh sửa </span>
+                    <div class="like-comment-count like-comment-count-${currCommentId}" data-comment-id="${currCommentId}">
+                        <i class="fa-solid fa-thumbs-up"></i> 
+                        <span> ${likeCommentValLength} likes </span>
+                        <div class="people-like-comment people-like-comment-${ currCommentId }">${ peoplelikesCommentList }</div>
+                    </div>
+                </div>
+                <div class="replies-container replies-container-${currCommentId}">
+                    <!-- Replies will be appended here -->
+                    ${replyCommentHtml}
+                </div>
+                <div class="reply-input-container reply-input-container-${currCommentId}" style="display:none;">
+                    <div class="reply-comment-avatar">
+                        <img src="${currUser.profilePicture}" alt="Avatar">
+                    </div>
+                    <div class="reply-input-wrapper">
+                        <textarea class="reply-input reply-input-text" placeholder="Nhập phản hồi..."></textarea>
+                        <button class="send-reply-button"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
 
 async function fileReaderImage(file) {
     console.log("fileReaderImage");
@@ -943,9 +1310,9 @@ function showNotification(message) {
 }
 
 async function showPost(posts) {
-    console.log(" showPost likesArr",likesArr);
-    console.log(" showPost commentsArr",commentsArr);
-    console.log(" showPost user",user);
+    // console.log(" showPost likesArr",likesArr);
+    // console.log(" showPost commentsArr",commentsArr);
+    // console.log(" showPost user",user);
     // console.log(" showPost user",user);
 
     var postContentContainer = document.querySelector('.post-content-container');
@@ -981,7 +1348,7 @@ async function showPost(posts) {
         //Lấy các giá trị comment
         var commentsPost = commentsArr.filter(item => item.postId == posts[i]._id);
         var commentHtml = createCommentsHTML(commentsPost, users, likesArr, user);
-        // console.log("commentHtml", commentHtml)
+        // console.log("commentsPost", commentsPost)
 
         postContent += `
         <div class="post-content-container1" id="post-${ posts[i]._id }" data-post-id="${posts[i]._id}">
@@ -1598,7 +1965,7 @@ function createPeopleLikeList(strings) {
   }
 
   function createNewComment (newComment) {
-    // console.log("token",token);
+    console.log("createNewComment",newComment);
     fetch('http://localhost:3000/api/comment', {
         method: "POST",
         headers: {
@@ -1681,84 +2048,7 @@ function updateComment (updateComment) {
     });
 }
 
-function createCommentsHTML(comments, users, likesArr, currUser) {
-    console.log(" createCommentsHTML 1 user",currUser);
 
-    return comments.map(comment => {
-        var currCommentId = comment._id;
-
-        //Hiển thị những người like
-        var likesComment = likesArr.filter(item => item.likeCommentId == currCommentId); //Lấy mảng từ likesArr có likeCommentId giống currCommentId
-        var peoplelikesPost = likesComment.map(likeComment => likeComment.userId);
-        // console.log("likesPost",likesPost)
-        var fullnamePeopleLike = getFullnameFromUserId(peoplelikesPost, users);
-        var peoplelikesCommentList = createPeopleLikeList(fullnamePeopleLike);
-        console.log("peoplelikesCommentList",peoplelikesCommentList);
-        console.log(" createCommentsHTML 2 user",currUser._id);
-
-        //Hiển thị biểu tượng like
-        var likedClass = '';
-        var isExist = likesComment.some(item => item.userId == currUser._id);
-        if (isExist) {
-            likedClass = 'liked-comment';
-        }
-
-        // Tìm user tương ứng với userId trong bình luận
-        const user = users.find(user => user._id == comment.userId);
-        // console.log("createCommentsHTML comment._id",comment._id);
-        var commentCreatedAt = comment.createdAt;
-        // console.log("createCommentsHTML comment.createAt",comment.createdAt);
-        var likeCommentVal = likesArr.filter(likeArr => likeArr.likeCommentId == currCommentId);
-        console.log("createCommentsHTML likeCommentVal",likeCommentVal);
-        var likeCommentValLength = likeCommentVal.length;
-
-        var timeComment = formatTimeAgo(commentCreatedAt);
-        var timeCommentTooltip = formatDateAndTooltip2(commentCreatedAt);
-
-
-        if (!user) return '';
-
-        // Tạo HTML cho bình luận
-        return `
-            <div class="comment comment-${currCommentId}" data-comment-id="${currCommentId}">
-                <div class="comment-header">
-                    <div class="comment-avatar">
-                        <img src="${user.profilePicture}" alt="Avatar">
-                    </div>
-                    <div class="comment-content">
-                        <span class="comment-author">${user.fullname}</span>
-                        <p class="comment-text1">${comment.commentText}</p>
-                        <textarea class="comment-edit" style="display:none;">${comment.commentText}</textarea>
-                        <button class="send-comment-edit" style="display:none;"><i class="fa-solid fa-paper-plane"></i></button>
-                        <button class="send-comment-button" style="display:none;"></button>
-
-                    </div>
-                    <div class="comment-options">
-                        <span class="options-icon" data-comment-id="${currCommentId}" data-comment-user="${user._id}">...</span>
-                        <div class="options-menu options-menu-${currCommentId}">
-                            <button id="update-comment" data-value="${currCommentId}" title="Cập nhật Comment" class="btn update-comment-btn btn-link">Chỉnh sửa</button>
-                            <button onclick="deleteComment('${currCommentId}');" title="Xoá" class="btn delete-btn btn-link">Xoá</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="comment-meta" data-comment-id = "${currCommentId}">
-                    <div>
-                        <span class="comment-date" data-timestamp="${comment.timestamp}">${timeComment}</span>
-                        <div class="comment-date-tooltip1 comment-date-tooltip1-${ currCommentId }"> <span>${timeCommentTooltip}</span></div>
-                    </div>
-                    <button class="like-comment-button ${likedClass}">Thích</button>
-                    <button class="reply-comment">Phản hồi</button>
-                    <span class = "isEdited-${comment.isEdited}"> Đã chỉnh sửa </span>
-                    <div class="like-comment-count like-comment-count-${currCommentId}" data-comment-id="${currCommentId}">
-                        <i class="fa-solid fa-thumbs-up"></i> 
-                        <span> ${likeCommentValLength} likes </span>
-                        <div class="people-like-comment people-like-comment-${ currCommentId }">${ peoplelikesCommentList }</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
 
 function saveComment(commentId) {
     console.log("saveComment");
@@ -1769,6 +2059,26 @@ function saveComment(commentId) {
     var sendCommentEditButton = commentElement.find('.send-comment-edit');
     var updatedComment = commentEditElement.val();
     console.log("updatedComment",updatedComment);
+
+    // Thay đổi nội dung comment gốc
+    commentTextElement.text(updatedComment);
+
+    // Ẩn ô nhập và nút gửi, hiển thị lại đoạn văn bản
+    commentEditElement.hide();
+    sendCommentEditButton.hide();
+    commentTextElement.show();
+
+}
+
+function saveReplyComment(replyCommentId) {
+    console.log("saveReplyComment");
+
+    var commentElement = $('.reply-' + replyCommentId);
+    var commentTextElement = commentElement.find('.comment-text2');
+    var commentEditElement = commentElement.find('.reply-comment-edit');
+    var sendCommentEditButton = commentElement.find('.send-reply-comment-edit');
+    var updatedComment = commentEditElement.val();
+    // console.log("updatedComment",updatedComment);
 
     // Thay đổi nội dung comment gốc
     commentTextElement.text(updatedComment);

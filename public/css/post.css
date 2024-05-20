@@ -328,7 +328,7 @@
 }
 
 .comment-input .send-comment-button {
-    background-color: #007bff;
+    background-color: var(--main1Color);
     color: #fff;
     border: none;
     padding: 6px;

@@ -340,6 +340,7 @@ const createLike = async (req, res) => {
                 return res.status(400).json({ message: 'Bạn đã like comment này.' });
             } else {
                 const like1 = new Like(createLike);
+                console.log("like1",like1);
                 await like1.save();
                 const likeArr1 = await Like.find({  });
                 return res.status(200).json({ likeArr1: likeArr1 });
@@ -383,7 +384,7 @@ const createComment = async (req, res) => {
     try {
         const newComment = req.body;
         const token = req.header('Authorize');
-        // console.log("token",token);
+        console.log("token",token);
         console.log("newComment",newComment);
 
         if (!token) {

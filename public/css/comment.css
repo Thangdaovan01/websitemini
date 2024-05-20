@@ -56,7 +56,7 @@
     margin-bottom: 10px;
 }
 
-.comment-header {
+.comment-header, .reply-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -69,7 +69,7 @@
     margin-right: 10px;
 }
 
-.comment-content {
+.comment-content, .reply-content {
     flex-grow: 1;
     background-color: var(--mainColor);
     border-radius: 20px;
@@ -77,14 +77,15 @@
 
 }
 
-.comment-content p{
+.comment-content p, .reply-content p{
    margin-top: 0;
    margin-bottom: 0;
 }
 
-.comment-author {
+.comment-author, .reply-author {
     font-weight: bold;
     margin-right: 10px;
+    font-size: 13px;
 }
 
 /* Menu tùy chọn */
@@ -130,12 +131,21 @@
     font-size: 12px;
 }
 
-.comment-meta span,
-.comment-meta button {
+.reply-meta {
+    display: flex;
+    align-items: center;
+    margin-left: 40px;
+    color: var(--textColor);
+    font-size: 12px;
+}
+
+.comment-meta span, .comment-meta button,
+.reply-meta span, .reply-meta button {
     margin-right: 10px;
 }
 
-.comment-meta button {
+.comment-meta button,
+.reply-meta button {
     background: none;
     border: none;
     cursor: pointer;
@@ -144,7 +154,7 @@
     font-size: 14px;
 }
 
-.comment-meta button:hover {
+.comment-meta button:hover, .reply-meta button:hover {
     text-decoration: underline;
 }
 
@@ -184,14 +194,14 @@
     display: block;
 }
 
-.comment-edit {
+.comment-edit, .reply-comment-edit {
     width: 100%;
     min-height: 50px;
     margin-top: 5px;
     border: none;
 }
 
-.send-comment-edit {
+.send-comment-edit, .send-reply-comment-edit {
     display: inline-block;
     margin-top: 5px;
     background-color: #007bff;
@@ -236,7 +246,48 @@
     display: block;
 }
 
+.reply-input-container {
+    display: flex;
+    align-items: flex-start;
+    margin-left: 60px;
+}
 
+.reply-comment-avatar {
+    margin-right: 10px;
+}
 
+.reply-comment-avatar img {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+}
 
+.reply-input-wrapper {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+}
+
+.reply-input {
+    flex-grow: 1;
+    padding: 10px;
+    margin-right: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.send-reply-button {
+    border: none;
+    background-color: var(--main1Color);
+    color: white;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+}
+
+.replies-container {
+    margin-left: 60px;
+    margin-top: 10px;
+}
 
