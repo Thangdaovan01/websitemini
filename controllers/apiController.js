@@ -1,12 +1,7 @@
 const express = require('express');
 const { generateToken, decodeToken } = require('../middleware/authentication');
-// import { deleteImageFromStorage, multer, uploadImageToStorage } from '../storage/cloudinary';
-// const { deleteImageFromStorage, multer, uploadImageToStorage } = require('../storage/cloudinary');
 const { config } = require('../config/config.js');
 const mongoose = require('mongoose');
-const { ObjectId } = require('mongoose').Types;
-
-const cloudinary = require('cloudinary').v2;
 
 const User = require('../models/User')
 const Excel = require('../models/Excel')
@@ -58,9 +53,6 @@ const register = async (req, res) => {
         if (!account.fullname || !account.user_name || !account.password) {
             return res.status(400).json({ message: 'Thông tin tài khoản đăng kí không được gửi đầy đủ về phía server' });
         }
-        // console.log("account",account);
-
-        // const userNew = new User(account);
 
         const existingUser = await User.findOne({ user_name: account.user_name });
         // console.log("existingUser",existingUser);
@@ -276,26 +268,6 @@ function getIdFromtUsername(username, array) {
     // Nếu không tìm thấy, trả về null hoặc giá trị mặc định khác
     return null; // hoặc trả về một giá trị mặc định khác tùy theo yêu cầu của bạn
 }
-
-const uploadImage =  async (req, res) => {
-    console.log("apiRouter.post");
-
-    try {
-        // console.log("REQ",req.body.imageUrl);
-        // Tải ảnh lên Cloudinary
-        const result = await cloudinary.uploader.upload(req.body.imageUrl);
-        // const result = await cloudinary.uploader.upload("https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg");
-        console.log("result",result);
-        // Lấy link ảnh từ Cloudinary
-        const imageUrl = result.secure_url;
-
-        // Trả về link ảnh cho client
-        res.status(200).json({ imageUrl });
-    } catch (error) {
-        console.error("Error uploading image:", error);
-        res.status(500).json({ message: 'Lỗi khi tải ảnh lên Cloudinary' });
-    }
-};
 
 const updateUserProfile = async (req, res) => {
     try {
@@ -569,14 +541,14 @@ const deleteFriend = async (req, res) => {
         const cancelFriend = req.body;
         var userId = cancelFriend.userId;
         var friendId = cancelFriend.friendId;
-        // console.log("cancelFriend",cancelFriend);
+        console.log("cancelFriend",cancelFriend);
         if (!cancelFriend) {
             return res.status(400).json({ message: 'Thông tin về dữ liệu bạn muốn xóa không được gửi về server.'});
         }
 
         const friendArr = await Friend.find({  });
         const friend = friendArr.find(f => f.userId == userId && f.friendId == friendId);
-        const friend1 = friendArr.filter(f => !(f.userId == userId && f.friendId == friendId));
+        const friend2 = friendArr.find(f => f.userId == friendId && f.friendId == userId);
         
         // console.log("friend",friend);
         // console.log("userId",userId);
@@ -584,7 +556,14 @@ const deleteFriend = async (req, res) => {
 
         if(friend){
             await Friend.deleteOne({ _id: friend._id });
+            const friend1 = friendArr.filter(f => !(f.userId == userId && f.friendId == friendId));
             return res.status(200).json({ friendsArr: friend1 });
+        }
+
+        if(friend2){
+            await Friend.deleteOne({ _id: friend2._id });
+            const friend3 = friendArr.filter(f => !(f.userId == friendId && f.friendId == userId));
+            return res.status(200).json({ friendsArr: friend3 });
         }
     } catch (error) {
         console.error(error);
@@ -592,13 +571,32 @@ const deleteFriend = async (req, res) => {
     }
 }
 
+const uploadPostImg =  async (req, res) => {
+    try {
+        res.status(200).json({ filename: req.file.filename });
+    } catch (error) {
+        console.error("Error uploading image:", error);
+        res.status(500).json({ message: 'Lỗi khi tải ảnh lên Cloudinary' });
+    }
+};
+
+const uploadUserImg =  async (req, res) => {
+    try {
+        res.status(200).json({ filename: req.file.filename });
+    } catch (error) {
+        console.error("Error uploading image:", error);
+        res.status(500).json({ message: 'Lỗi khi tải ảnh lên Cloudinary' });
+    }
+};
+
+
 module.exports = {
     login, register, getUser,
     getStyle, 
     deletePost, createPost, updatePost, getRow,
-    uploadImage, 
     updateUserProfile,
     createLike, deleteLike,
     createComment, updateComment, deleteComment,
-    createFriend, updateFriend, deleteFriend
+    createFriend, updateFriend, deleteFriend,
+    uploadPostImg, uploadUserImg
 }

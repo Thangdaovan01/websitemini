@@ -7,6 +7,8 @@ var user = {};
 var photoValues1 = [];
 var profilePicture2 = '';
 var coverPicture2 = '';
+var userImageFileName = '';
+var postImageFileName = '';
 
 const token = localStorage.getItem('jwtToken');
 
@@ -31,21 +33,22 @@ $(document).ready(function() {
     .then(result => {
         user = result.user;
         users = result.users;
-        console.log("users",users);
         posts = result.posts;
         likesArr = result.likes;
         commentsArr = result.comments;
         friendsArr = result.friends;
-        // const imgElement = document.querySelector('.image-container img');
-        // imgElement.src = `${user.profilePicture}`;
-
-        showUser(user, users, posts, friendsArr);
-        showPost(posts);
+        const imgElement = document.querySelector('.image-container img');
+        imgElement.src = `/userImg/${user.profilePicture}`;
+       
+        showPost(posts, 'post-content-container');
     })
     .catch(error => {
         console.error('There was a problem with your fetch operation:', error);
     });
-   
+})
+
+$(document).ready(function() {
+    //Chưa làm
     $('#search_form').submit(function(event){
         event.preventDefault();
         key = $('#search_form input[type="text"]').val().toLowerCase();
@@ -57,13 +60,7 @@ $(document).ready(function() {
 
     $(document).on('click', '.input-container, .create-post-image-btn, .create-post-video-btn', function(event) { 
         event.stopPropagation();
-        // console.log("Button clicked!");
-        // console.log(decodeToken(token));
-        // console.log(token);
-
-        // var uniqueWebsites = styles.filter((item, index, array) => array.findIndex(i => i.website === item.website) === index)
-        //                      .map(item => item.website);
-
+        
         $("body").children().not(".window, .notification").addClass("blur");
 
         var newPost = ``
@@ -76,7 +73,7 @@ $(document).ready(function() {
                     <h3>Thêm bài đăng</h3>
                     <div class="user-avatar ">
                         <!-- Avatar của người dùng -->
-                        <img src="${user.profilePicture}" alt="User Avatar">
+                        <img src="/userImg/${user.profilePicture}" alt="User Avatar">
                     </div>
                     <h6>${user.fullname}</h6>
                     <div class="privacy-options">
@@ -97,15 +94,7 @@ $(document).ready(function() {
                         <div class="preview-images-post">
                         </div>
                     </div>
-                    <div class="video-upload">
-                        <label for="video-upload">Chèn video</label>
-                        <input type="file" id="video-upload" accept="video/*" multiple>
-                        <!-- Hiển thị video được tải lên -->
-                    </div>
-                    
                 </div>
-
-
             </div>
             <button class="post-button">Đăng</button>
         </div>
@@ -146,10 +135,7 @@ $(document).ready(function() {
             photo: photoValues,
             video: videoValues,
             createdBy: user._id,
-
         };
-
-
         creatNewPost(newPost);
     }); 
 
@@ -157,22 +143,22 @@ $(document).ready(function() {
         event.stopPropagation();
         console.log("ImageUrl image-upload");
 
-        const file = event.target.files[0];
+        var formData = new FormData();
+        var imageFile = document.getElementById('image-upload').files[0];
+        imageFile.fieldname = 'image';
+        formData.append('image', imageFile);
 
-        if (file && file.type.startsWith('image/')) {
+        if (imageFile && imageFile.type.startsWith('image/')) {
             try {
-                const imageUrl = await fileReaderImage(file);
-                console.log("ImageUrl:", imageUrl);
-                photoValues1.push(imageUrl);
-                displayImage(imageUrl);
+                await fileReaderPostImage(formData);
+                photoValues1.push(postImageFileName);
+                displayImage1(`/postImg/${postImageFileName}`, 'preview-images-post');
             } catch (error) {
                 console.error('Error uploading image:', error);
             }
         } else {
             showNotification('Vui lòng chọn một tệp ảnh hợp lệ.');
         }
-        console.log("photoValues Change",photoValues1);
-
     })
 
     $(document).on('click', '.fa-ellipsis-v', function(event) {
@@ -222,7 +208,7 @@ $(document).ready(function() {
                     <h3>Cập nhật bài đăng</h3>
                     <div class="user-avatar">
                         <!-- Avatar của người dùng -->
-                        <img src="${user.profilePicture}" alt="User Avatar">
+                        <img src="/userImg/${user.profilePicture}" alt="User Avatar">
                     </div>
                     <h6>${user.fullname}</h6>
                     <div class="privacy-options">
@@ -244,12 +230,6 @@ $(document).ready(function() {
                             <!-- Hiển thị ảnh được tải lên -->
                         </div>
                     </div>
-                    <div class="video-upload">
-                        <label for="video-upload">Chèn video</label>
-                        <input type="file" id="video-upload" accept="video/*" multiple>
-                        <!-- Hiển thị video được tải lên -->
-                    </div>
-                    
                 </div>
 
 
@@ -268,11 +248,8 @@ $(document).ready(function() {
 
     $(document).on('click', '.update-post-button', async function(event) {
         event.stopPropagation();
-        console.log('click .update-new')
-        console.log("photoValues toàn cục", photoValues1);
 
         var $data = $(this).siblings('div');
-        // console.log("$data", $data);
         // var id = $(this).siblings('div.website-name').attr('value');
         // var postId = $(this).data('value');
         var postId = $('.post-form2').attr('value');
@@ -300,7 +277,7 @@ $(document).ready(function() {
             createdBy: user._id,
             updatedBy: user._id,
         };
-        console.log("updatePost1", updatePost1);
+        // console.log("updatePost1", updatePost1);
 
         if (!confirm('Cập nhật bài đăng')) {
             return
@@ -310,7 +287,7 @@ $(document).ready(function() {
 
     $(document).on('click', '.Xbuttonimage', function(event1) {
         event1.stopPropagation();
-        console.log("Bấm vào nút X ở update");
+        // console.log("Bấm vào nút X ở update");
 
         const imageContainer = $(this).closest('.image-container');
         const imgSrc = imageContainer.find('img').attr('src');
@@ -382,22 +359,15 @@ $(document).ready(function() {
 
     $(document).on('click', '.edit-info-btn', function(event) { 
         event.stopPropagation();
-        console.log("CHỈNH SỬA THÔNG TIN");
-        console.log("profilePicture toàn cục", profilePicture2);
-        console.log("coverPicture toàn cục", coverPicture2);
 
         profilePicture2 = user.profilePicture;
         coverPicture2 = user.coverPicture;
-        // console.log("profilePicture",profilePicture2);
-        // console.log("coverPicture",coverPicture2);
         var birthday = formatDate2(user.birthday);
  
         $("body").children().not(".window, .notification").addClass("blur");
 
         var editInfoHtml = ``
-
         editInfoHtml += `
-            
         <div class="post-form">
             <div class="post-form2">
                 <div class="post-form1">
@@ -453,8 +423,8 @@ $(document).ready(function() {
         $('.window').empty().append(editInfoHtml);
         if(user){
             console.log("Không in ra nha")
-            displayImage1(user.profilePicture, 'preview_profile_picture');
-            displayImage1(user.coverPicture, 'preview_cover_picture');
+            displayImage1(`/userImg/${user.profilePicture}`, 'preview_profile_picture');
+            displayImage1(`/userImg/${user.coverPicture}`, 'preview_cover_picture');
         }
         $('.window').show();
     });
@@ -462,11 +432,7 @@ $(document).ready(function() {
     $(document).on('click', '.update-info-button', async function(event) {
         event.stopPropagation();
         console.log('click .update-info-button')
-        console.log("profilePicture toàn cục", profilePicture2);
-        console.log("coverPicture toàn cục", coverPicture2);
-
         var $data = $(this).siblings('div');
-        
         var fullname = $data.find('#fullname').val();
         var bio = $data.find('#bio').val();
         var birthday = $data.find('#birthday').val();
@@ -477,13 +443,13 @@ $(document).ready(function() {
         if(profilePicture2){
             profilePicture1 = profilePicture2;
         } else {
-            profilePicture1 = 'https://i.pinimg.com/564x/29/b8/d2/29b8d250380266eb04be05fe21ef19a7.jpg';
+            profilePicture1 = 'avatar.jpg';
         }
 
         if(coverPicture2){
             coverPicture1 = coverPicture2;
         } else {
-            coverPicture1 = 'https://www.trendycovers.com/covers/Nothing_Here_facebook_cover_1346610160.jpg';
+            coverPicture1 = 'cover.jpg';
         }
         var updateInfo1 = {
             _id: user._id,
@@ -494,7 +460,6 @@ $(document).ready(function() {
             gender: gender,
             birthday: birthday,
         };
-        console.log("updateInfo1", updateInfo1);
 
         if (!confirm('Cập nhật thông tin người dùng')) {
             return
@@ -504,18 +469,16 @@ $(document).ready(function() {
     
     $(document).on('change','#profile-image-upload', async function(event) {
         event.stopPropagation();
-        console.log("ImageUrl #profile-image-upload");
+        var formData = new FormData();
+        var imageFile = document.getElementById('profile-image-upload').files[0];
+        imageFile.fieldname = 'image';
+        formData.append('image', imageFile);
 
-        console.log("profilePicture toàn cục profile", profilePicture2);
-        console.log("coverPicture toàn cục profile", coverPicture2);
-        const file = event.target.files[0];
-
-        if (file && file.type.startsWith('image/')) {
+        if (imageFile && imageFile.type.startsWith('image/')) {
             try {
-                const imageUrl = await fileReaderImage(file);
-                console.log("ImageUrl profilePicture:", imageUrl);
-                profilePicture2 = imageUrl;
-                displayImage1(imageUrl, 'preview_profile_picture');
+                await fileReaderUserImage(formData);
+                profilePicture2 = userImageFileName;
+                displayImage1(`/userImg/${profilePicture2}`, 'preview_profile_picture');
             } catch (error) {
                 console.error('Error uploading image:', error);
             }
@@ -526,17 +489,16 @@ $(document).ready(function() {
 
     $(document).on('change','#cover-image-upload', async function(event) {
         event.stopPropagation();
-        console.log("ImageUrl #cover-image-upload");
-        console.log("profilePicture toàn cục cover", profilePicture2);
-        console.log("coverPicture toàn cục cover", coverPicture2);
-        const file = event.target.files[0];
+        var formData = new FormData();
+        var imageFile = document.getElementById('cover-image-upload').files[0];
+        imageFile.fieldname = 'image';
+        formData.append('image', imageFile);
 
-        if (file && file.type.startsWith('image/')) {
+        if (imageFile && imageFile.type.startsWith('image/')) {
             try {
-                const imageUrl = await fileReaderImage(file);
-                console.log("ImageUrl: coverPicture", imageUrl);
-                coverPicture2 = imageUrl;
-                displayImage1(imageUrl, 'preview_cover_picture');
+                await fileReaderUserImage(formData);
+                coverPicture2 = userImageFileName;
+                displayImage1(`/userImg/${coverPicture2}`, 'preview_cover_picture');
             } catch (error) {
                 console.error('Error uploading image:', error);
             }
@@ -640,7 +602,7 @@ $(document).ready(function() {
             <div class="comment">
                 <div class="comment-header">
                     <div class="comment-avatar">
-                        <img src="${user.profilePicture}" alt="Avatar">
+                        <img src="/userImg/${user.profilePicture}" alt="Avatar">
                     </div>
                     <div class="comment-content">
                         <span class="comment-author">${user.fullname}</span>
@@ -829,26 +791,6 @@ $(document).ready(function() {
         likeCountElement.textContent = totalLikes + ' likes';
     })
 
-    $(document).on('mouseover','.like-comment-count',  function(event) {
-        event.stopPropagation();
-        // console.log("mouseover");
-        const commentId = this.getAttribute('data-comment-id');
-        const tooltips = document.querySelectorAll(`.people-like-comment-${commentId}`);
-        
-        tooltips.forEach(tooltip => {
-            tooltip.classList.add('active');
-        });
-        
-    })
-
-    $(document).on('mouseout','.like-comment-count',  function(event) {
-        event.stopPropagation();
-        const tooltips = document.querySelectorAll('.people-like-comment');
-
-        tooltips.forEach(tooltip => {
-            tooltip.classList.remove('active'); 
-        });
-    })
 
     $(document).on('click', '.reply-comment', function(event) {
         event.stopPropagation();
@@ -884,7 +826,7 @@ $(document).ready(function() {
             <div class="reply">
                 <div class="reply-header">
                     <div class="reply-avatar reply-comment-avatar">
-                        <img src="${user.profilePicture}" alt="Avatar">
+                        <img src="/userImg/${user.profilePicture}" alt="Avatar">
                     </div>
                     <div class="reply-content">
                         <span class="reply-author">${user.fullname}</span>
@@ -1014,7 +956,8 @@ $(document).ready(function() {
         likeCountElement.textContent = totalLikes + ' likes';
     })
 
-    $(document).on('mouseover','.like-reply-comment-count',  function(event) {
+
+    $(document).on('mouseover','.like-comment-count',  function(event) {
         event.stopPropagation();
         // console.log("mouseover");
         const commentId = this.getAttribute('data-comment-id');
@@ -1026,9 +969,30 @@ $(document).ready(function() {
         
     })
 
-    $(document).on('mouseout','.like-reply-comment-count',  function(event) {
+    $(document).on('mouseout','.like-comment-count',  function(event) {
         event.stopPropagation();
         const tooltips = document.querySelectorAll('.people-like-comment');
+
+        tooltips.forEach(tooltip => {
+            tooltip.classList.remove('active'); 
+        });
+    })
+
+    $(document).on('mouseover','.like-reply-comment-count',  function(event) {
+        event.stopPropagation();
+        // console.log("mouseover");
+        const replyCommentId = this.getAttribute('data-reply-comment-id');
+        const tooltips = document.querySelectorAll(`.people-like-reply-comment-${replyCommentId}`);
+        
+        tooltips.forEach(tooltip => {
+            tooltip.classList.add('active');
+        });
+        
+    })
+
+    $(document).on('mouseout','.like-reply-comment-count',  function(event) {
+        event.stopPropagation();
+        const tooltips = document.querySelectorAll('.people-like-reply-comment');
 
         tooltips.forEach(tooltip => {
             tooltip.classList.remove('active'); 
@@ -1119,14 +1083,17 @@ $(document).ready(function() {
         event.stopPropagation();
         console.log("Huý kết bạn");
         const $this = $(this);
-        const senderFriendId = $(this).closest('.friend').attr('data-sender-friend-id');
+        const viewprofileFriendId = $(this).closest('.friend').attr('data-viewprofile-friend-id');
+        const viewprofileId = $(this).closest('.friend').attr('data-viewprofile-id');
         const friendElementId = $(this).closest('.friend').attr('data-friend-id');
+        const currUserId = user._id;
 
         var cancelFriend = {
-            userId: senderFriendId,
+            userId: viewprofileId,
             friendId: user._id,
         }
-        if(confirm("Huỷ kết bạn")){
+        if(currUserId == viewprofileId){
+            if(confirm("Huỷ kết bạn")){
             fetch(`http://localhost:3000/api/friend`, {
                 method: 'DELETE',
                 headers: {
@@ -1150,6 +1117,9 @@ $(document).ready(function() {
             .catch(error => {
                 console.error('There was a problem with your fetch operation:', error);
             });
+        }
+        } else {
+            showNotification("Bạn không có quyền thực hiện");
         }
 
         
@@ -1205,9 +1175,10 @@ $(document).ready(function() {
         const friendId = urlParams.get('id'); //id người mà mk đang xem trang cá nhân
         $('.friends-list').toggle();
         $('.main-content').toggle(); // Ẩn hoặc hiện các khối div khác
-        // array.find(item => item._id === id);
-        // const friendList = findObjectById(friendsArr,friendId);
-        const friendList = friendsArr.filter(friend => friend.friendId == friendId )
+        
+        // const friendList = friendsArr.filter(friend => friend.friendId == friendId )
+        const friendList = friendsArr.filter(friend => friend.friendId === friendId || friend.userId === friendId);
+
         console.log("friendList",friendList);
 
         displayFriendsList(friendList, friendId);
@@ -1220,25 +1191,28 @@ $(document).ready(function() {
 });
 
 // Hàm để hiển thị danh sách bạn bè
-function displayFriendsList(friends, currentUserId) {
+function displayFriendsList(friends, viewUserId) {
     const friendsList = document.getElementById('friends-list');
 
     // Xóa dữ liệu cũ
     friendsList.innerHTML = '';
     console.log("friendsArr",friendsArr);
     console.log("friends",friends);
-    console.log("currentUserId",currentUserId);
+    console.log("viewUserId",viewUserId);
 
     // Lặp qua danh sách bạn bè và thêm vào giao diện
-    friends.forEach(friend => {
+    for (let i = 0; i < friends.length; i++) {
+        const friend = friends[i];
+        var senderFriendId2 = friend.friendId;
         var senderFriendId = friend.userId;
-        const senderFriend = findObjectById(users,senderFriendId);
-
+        const senderFriend = findObjectById(users, senderFriendId);  // cái này là người khác gửi đễn viewUserId
+        const senderFriend2 = findObjectById(users, senderFriendId2); //cái này là viewUserId gửi đến người khác
+    
         // Chỉ hiển thị bạn bè nếu userId giống với id trên URL
-        if (friend.friendId == currentUserId) {
+        if (friend.friendId == viewUserId) {
             var friendElementHTML = `
-                <div class="friend friend-${friend._id}" data-friend-id="${friend._id}" data-sender-friend-id="${senderFriendId}">
-                    <img src="${senderFriend.profilePicture}" alt="">
+                <div class="friend friend-${friend._id}" data-friend-id="${friend._id}" data-viewprofile-friend-id="${senderFriendId}" data-viewprofile-id="${viewUserId}">
+                    <img src="/userImg/${senderFriend.profilePicture}" alt="">
                     <span>${senderFriend.fullname}</span>
                     <div class="actions">
                         ${friend.status == 'pending' ? '<button class="btn accepted-friends-btn" >Chấp nhận</button>' : ''}
@@ -1246,11 +1220,23 @@ function displayFriendsList(friends, currentUserId) {
                     </div>
                 </div>
             `;
+            friendsList.innerHTML += friendElementHTML;
+        } 
+        if ( friend.userId == viewUserId) {
+            var friendElementHTML1 = `
+                <div class="friend friend-${friend._id}" data-friend-id="${friend._id}" data-viewprofile-friend-id="${senderFriendId2}" data-viewprofile-id="${viewUserId}">
+                    <img src="/userImg/${senderFriend2.profilePicture}" alt="">
+                    <span>${senderFriend2.fullname}</span>
+                    <div class="actions">
+                        ${friend.status == 'pending' ? '<button class="btn accepted-friends-btn" >Đã gửi lời mời</button>' : ''}
+                        ${friend.status == 'accepted' ? '<button class="btn friends-btn1">Bạn bè</button>' : ''}
+                    </div>
+                </div>
+            `;
+            friendsList.innerHTML += friendElementHTML1;
         }
-        friendsList.innerHTML += friendElementHTML;
-    });
+    }
 }
-
 
 function createReplyCommentsHTML(replyComments, users, likesArr, currUser, postId) {
     return replyComments.map(replyComment => {
@@ -1285,7 +1271,7 @@ function createReplyCommentsHTML(replyComments, users, likesArr, currUser, postI
         <div class="reply reply-${replyCurrCommentId}" data-reply-comment-id="${replyCurrCommentId}">
             <div class="reply-header">
                 <div class="reply-avatar reply-comment-avatar user-page" data-value="${user._id} ">
-                    <img src="${user.profilePicture}" alt="Avatar">
+                    <img src="/userImg/${user.profilePicture}" alt="Avatar">
                 </div>
                 <div class="reply-content">
                     <span class="reply-author user-page" data-value="${user._id} ">${user.fullname}</span>
@@ -1372,7 +1358,7 @@ function createCommentsHTML(comments, users, likesArr, currUser) {
             <div class="comment comment-${currCommentId}" data-comment-id="${currCommentId}" data-post-id="${postId}">
                 <div class="comment-header">
                     <div class="comment-avatar user-page" data-value="${user._id} ">
-                        <img src="${user.profilePicture}" alt="Avatar">
+                        <img src="/userImg/${user.profilePicture}" alt="Avatar">
                     </div>
                     <div class="comment-content">
                         <span class="comment-author user-page" data-value="${user._id} ">${user.fullname}</span>
@@ -1402,14 +1388,14 @@ function createCommentsHTML(comments, users, likesArr, currUser) {
                         <span> ${likeCommentValLength} likes </span>
                         <div class="people-like-comment people-like-comment-${ currCommentId }">${ peoplelikesCommentList }</div>
                     </div>
-                </div>
+                </div> 
                 <div class="replies-container replies-container-${currCommentId}">
                     <!-- Replies will be appended here -->
                     ${replyCommentHtml}
                 </div>
                 <div class="reply-input-container reply-input-container-${currCommentId}" style="display:none;">
                     <div class="reply-comment-avatar">
-                        <img src="${currUser.profilePicture}" alt="Avatar">
+                        <img src="/userImg/${currUser.profilePicture}" alt="Avatar">
                     </div>
                     <div class="reply-input-wrapper">
                         <textarea class="reply-input reply-input-text" placeholder="Nhập phản hồi..."></textarea>
@@ -1421,14 +1407,13 @@ function createCommentsHTML(comments, users, likesArr, currUser) {
     }).join('');
 }
 
+//Hàm lưu ảnh  chưa dùng tới
 async function fileReaderImage(file) {
     console.log("fileReaderImage");
     return new Promise((resolve, reject) => {
-        // Tạo đối tượng FileReader
         const reader = new FileReader();
         console.log("reader",reader);
 
-        // Xử lý sự kiện khi tệp ảnh được đọc thành công
         reader.onload = async function(event) {
             const imageDataUrl = event.target.result;
             // console.log("imageDataUrl",imageDataUrl)
@@ -1474,6 +1459,73 @@ async function fileReaderImage(file) {
     });
 }
 
+//Lưu ảnh avatar và cover
+async function fileReaderUserImage(formData) {
+    console.log("fileReaderUserImage");
+    try {
+        const response = await fetch('http://localhost:3000/api/uploadUserImg', {
+            method: "POST",
+            body: formData
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (!response.ok) {
+                    showNotification(data.message);
+                    throw new Error('Network response was not ok');
+                }
+                return data;
+            });
+        })
+        .then(result => {
+            // showNotification(result.message);
+            console.log("fileReaderImage",result.filename);
+            userImageFileName = result.filename;
+
+        })
+        .catch(error => {
+            console.error('There was a problem with your fetch operation:', error);
+        });
+
+                
+    } catch (error) {
+        console.error('There was a problem with your fetch operation:', error);
+    }       
+}
+
+//Lưu ảnh bài đăng
+async function fileReaderPostImage(formData) {
+    console.log("fileReaderUserImage");
+    try {
+        const response = await fetch('http://localhost:3000/api/uploadPostImg', {
+            method: "POST",
+            body: formData
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (!response.ok) {
+                    showNotification(data.message);
+                    throw new Error('Network response was not ok');
+                }
+                return data;
+            });
+        })
+        .then(result => {
+            // showNotification(result.message);
+            console.log("fileReaderImage",result.filename);
+            postImageFileName = result.filename;
+
+        })
+        .catch(error => {
+            console.error('There was a problem with your fetch operation:', error);
+        });
+
+                
+    } catch (error) {
+        console.error('There was a problem with your fetch operation:', error);
+    }       
+}
+
+//Chưa dùng
 function search (value) {
     fetch(`http://localhost:3000/api/row?key=${ value }`, {
             method: "GET",
@@ -1523,14 +1575,12 @@ function showNotification(message) {
     }, 3000); 
 }
 
-async function showPost(posts) {
-    console.log(" showPost likesArr");
-    // console.log(" showPost likesArr",likesArr);
+async function showPost(postsArr, className) {
+    // console.log(" showPost likesArr");
+    console.log(" showPost postsArr",postsArr);
     
-    var postContentContainer = document.querySelector('.post-content-container');
-    var dataLength = posts.length;
-
-    // const commentsContainer = document.querySelector('.comments');
+    var postContentContainer = document.querySelector(`.${className}`);
+    var dataLength = postsArr.length;
 
     const divElement = document.querySelector('.image-container.user-page');
 
@@ -1540,12 +1590,13 @@ async function showPost(posts) {
 
     var postContent = ``;
     for (let i = 0; i < dataLength; i++) {
-        var userCreate = findObjectById(users, posts[i].createdBy );
-        var postCreatedAt = formatDateAndTooltip1(posts[i].createdAt);
-        var postCreatedAtTooltip = formatDateAndTooltip2(posts[i].createdAt); //Số lượt like
+        const postsArrId = postsArr[i]._id;
+        var userCreate = findObjectById(users, postsArr[i].createdBy );
+        var postCreatedAt = formatDateAndTooltip1(postsArr[i].createdAt);
+        var postCreatedAtTooltip = formatDateAndTooltip2(postsArr[i].createdAt); //Số lượt like
         
         //Hiển thị những người like
-        var likesPost = likesArr.filter(item => item.likePostId == posts[i]._id);
+        var likesPost = likesArr.filter(item => item.likePostId == postsArrId);
         var peoplelikesPost = likesPost.map(user => user.userId);
         // console.log("likesPost",likesPost)
         var fullnamePeopleLike = getFullnameFromUserId(peoplelikesPost, users);
@@ -1558,25 +1609,25 @@ async function showPost(posts) {
             likedClass = 'liked';
         } 
         //Lấy các giá trị comment
-        var commentsPost = commentsArr.filter(item => item.postId == posts[i]._id);
+        var commentsPost = commentsArr.filter(item => item.postId == postsArrId);
         var commentHtml = createCommentsHTML(commentsPost, users, likesArr, user);
         // console.log("commentsPost", commentsPost)
 
         postContent += `
-        <div class="post-content-container1" id="post-${ posts[i]._id }" data-post-id="${posts[i]._id}">
+        <div class="post-content-container1" id="post-${ postsArrId }" data-post-id="${postsArrId}">
             <!-- Khối thông tin người đăng -->
             <div class="author-info">
-                <div class="avatar-container image-container user-page" data-value="${ posts[i].createdBy }">
+                <div class="avatar-container image-container user-page" data-value="${ postsArr[i].createdBy }">
                     <!-- Avatar của người đăng -->
-                    <img src="${userCreate.profilePicture}" alt="Avatar">
+                    <img src="/userImg/${userCreate.profilePicture}" alt="Avatar">
                 </div>
                 <div>
-                    <div class="author-name user-page" data-value="${ posts[i].createdBy }">
+                    <div class="author-name user-page" data-value="${ postsArr[i].createdBy }">
                         ${userCreate.fullname}
                     </div>
-                    <div class="post-create" id="date-containers" data-value="${ posts[i]._id }">
-                        <span class="post-create1 post-create-${ posts[i]._id }" data-post-id="${posts[i]._id}">${ postCreatedAt }</span>
-                        <div class="tooltip1 tooltip1-${ posts[i]._id }"> <span>${postCreatedAtTooltip}</span></div>
+                    <div class="post-create" id="date-containers" data-value="${ postsArrId }">
+                        <span class="post-create1 post-create-${ postsArrId }" data-post-id="${postsArrId}">${ postCreatedAt }</span>
+                        <div class="tooltip1 tooltip1-${ postsArrId }"> <span>${postCreatedAtTooltip}</span></div>
                     </div>
                     
                 </div>
@@ -1588,12 +1639,12 @@ async function showPost(posts) {
 
                     <div class="dropdown-menu-post-container">
                         <!-- Biểu tượng dấu ba chấm -->
-                        <i class="fa-solid fa-ellipsis-v fa-ellipsis-v-${ posts[i]._id }" data-post-id="${posts[i]._id}" data-post-user="${user._id}"></i>
+                        <i class="fa-solid fa-ellipsis-v fa-ellipsis-v-${ postsArrId }" data-post-id="${postsArrId}" data-post-user="${user._id}"></i>
                         <!-- Dropdown menu -->
-                        <div class="dropdown-menu-post dropdown-menu-post-${ posts[i]._id }">
+                        <div class="dropdown-menu-post dropdown-menu-post-${ postsArrId }">
                             <ul>
-                                <button id="update-post" data-value="${ posts[i]._id }" title="Cập nhật dữ liệu" class="btn update-btn btn-link"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deletePost('${ posts[i]._id }');" title="Xoá" class="btn delete-btn btn-link"><i class="fa-solid fa-trash"></i></button>
+                                <button id="update-post" data-value="${ postsArrId }" title="Cập nhật dữ liệu" class="btn update-btn btn-link"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deletePost('${ postsArrId }');" title="Xoá" class="btn delete-btn btn-link"><i class="fa-solid fa-trash"></i></button>
                             </ul>
                         </div>
                     </div>
@@ -1605,25 +1656,25 @@ async function showPost(posts) {
             <!-- Khối description và ảnh -->
             <div class="post-content">
                 <!-- Description -->
-                <span class="description">${posts[i].description}</span>
+                <span class="description">${postsArr[i].description}</span>
                 <!-- Ảnh -->
                 <div class="image-upload">
                     
                     <!-- Hiển thị ảnh được tải lên -->
                     <div class="preview-images">
-                        <img src="${posts[i].photo[0]}" alt="">
+                        <img src="/postImg/${postsArr[i].photo[0]}" alt="">
                     </div>
                 </div>
             </div>
         
             <!-- Khối like, comment, share -->
-            <div class="interaction-buttons-${posts[i]._id}">
-                <div class="like-count" data-post-id="${posts[i]._id}">
+            <div class="interaction-buttons-${postsArrId}">
+                <div class="like-count" data-post-id="${postsArrId}">
                     <i class="fa-solid fa-thumbs-up"></i> 
                     <span> ${likesPost.length} likes </span>
-                    <div class="people-like people-like-${ posts[i]._id }">${peoplelikesPostList}</div>
+                    <div class="people-like people-like-${ postsArrId }">${peoplelikesPostList}</div>
                 </div>
-                <div class="interaction-buttons" data-post-id="${posts[i]._id}">
+                <div class="interaction-buttons" data-post-id="${postsArrId}">
                     <!-- Nút like -->
                     <button class="like-button ${ likedClass }"><i class="fa-solid fa-thumbs-up"></i> Like</button>
                     <!-- Nút comment -->
@@ -1636,12 +1687,12 @@ async function showPost(posts) {
             <div class="comments-section">
                 <div class="comment-input">
                     <div class="avatar-container user-page" data-value="${user._id} ">
-                        <img src="${user.profilePicture}" alt="Avatar">
+                        <img src="/userImg/${user.profilePicture}" alt="Avatar">
                     </div>
                     <input type="text" class="comment-text" placeholder="Viết bình luận...">
                     <button class="send-comment-button"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
-                <div class="comments comments-${ posts[i]._id }">
+                <div class="comments comments-${ postsArrId }">
                     <!-- Các comment sẽ được hiển thị ở đây -->
                     ${commentHtml}
                 </div>
@@ -1656,203 +1707,199 @@ async function showPost(posts) {
     
 }
 
-async function showUser(user, users, posts, friendsArr){
-    const imgElement = document.querySelector('.image-container img');
-    imgElement.src = `${user.profilePicture}`;
+//Tạm thời ko dùng đến ở đây
+// async function showUser(user, users, posts, friendsArr){
+//     const imgElement = document.querySelector('.image-container img');
+//     imgElement.src = `/userImg/${user.profilePicture}`;
 
-    console.log('showUser');
-    // console.log('User:', user);
-    // console.log('Users Aray:', users);
-    // console.log('Posts Array:', posts);
-
-    var userId = getQueryParam('id'); //user mà đang xem trang cá nhân của họ
-    console.log('User ID:', userId, user._id);
+//     var userId = getQueryParam('id'); //user mà đang xem trang cá nhân của họ
     
-    const friendVal = friendsArr.find(f => f.userId === user._id && f.friendId === userId);
-    console.log('friendVal', friendVal);
+//     const friendVal = friendsArr.find(f => f.userId === user._id && f.friendId === userId);
 
-    var UserProfile = findObjectById(users, userId); //mảng của người mà mk đang xem trang cá nhân
+//     var UserProfile = findObjectById(users, userId); //mảng của người mà mk đang xem trang cá nhân
     
-    //Nếu người dùng đăng nhập đang xem trang của mình
-    if (userId === user._id) {
-        document.querySelector('.add-friend-btn').classList.add('hidden');
-        document.querySelector('.edit-info-btn').classList.remove('hidden');
-        document.querySelector('.post-header-container').classList.remove('hidden');
+//     //Nếu người dùng đăng nhập đang xem trang của mình
+//     if (userId === user._id) {
+//         document.querySelector('.add-friend-btn').classList.add('hidden');
+//         document.querySelector('.edit-info-btn').classList.remove('hidden');
+//         document.querySelector('.post-header-container').classList.remove('hidden');
 
-    } else {
-        document.querySelector('.edit-info-btn').classList.add('hidden');
-        document.querySelector('.post-header-container').classList.add('hidden');
-        if(friendVal){
-            var friendValStatus = friendVal.status;
+//     } else {
+//         document.querySelector('.edit-info-btn').classList.add('hidden');
+//         document.querySelector('.post-header-container').classList.add('hidden');
+//         if(friendVal){
+//             var friendValStatus = friendVal.status;
 
-            if(friendValStatus == 'pending'){
-                document.querySelector('.add-friend-btn').classList.add('hidden');
-                document.querySelector('.cancel-friend-btn').classList.remove('hidden');
-                document.querySelector('.friends-btn').classList.add('hidden');
-            }
+//             if(friendValStatus == 'pending'){
+//                 document.querySelector('.add-friend-btn').classList.add('hidden');
+//                 document.querySelector('.cancel-friend-btn').classList.remove('hidden');
+//                 document.querySelector('.friends-btn').classList.add('hidden');
+//             }
 
-            if(friendValStatus == 'accepted'){
-                document.querySelector('.add-friend-btn').classList.add('hidden');
-                document.querySelector('.cancel-friend-btn').classList.add('hidden');
-                document.querySelector('.friends-btn').classList.remove('hidden');
-            }
-        } else {
-            document.querySelector('.add-friend-btn').classList.remove('hidden');
-        }
-    }
+//             if(friendValStatus == 'accepted'){
+//                 document.querySelector('.add-friend-btn').classList.add('hidden');
+//                 document.querySelector('.cancel-friend-btn').classList.add('hidden');
+//                 document.querySelector('.friends-btn').classList.remove('hidden');
+//             }
+//         } else {
+//             document.querySelector('.add-friend-btn').classList.remove('hidden');
+//         }
+//     }
 
-    const coverPhotoElement = document.querySelector('.profile-container .cover-photo img');
-    if(UserProfile.coverPicture){
-        coverPhotoElement.src = `${UserProfile.coverPicture}`;
-    } else {
-        coverPhotoElement.src = 'https://www.trendycovers.com/covers/Nothing_Here_facebook_cover_1346610160.jpg';
-    }
+//     const coverPhotoElement = document.querySelector('.profile-container .cover-photo img');
+//     if(UserProfile.coverPicture){
+//         coverPhotoElement.src = `/userImg/${UserProfile.coverPicture}`;
+//     } else {
+//         coverPhotoElement.src = '/userImg/cover.jpg';
+//     }
 
-    const avatarPhotoElement = document.querySelector('.profile-container .user-info .avatar img');
-    if(UserProfile.profilePicture){
-        avatarPhotoElement.src = `${UserProfile.profilePicture}`;
-    } else {
-        avatarPhotoElement.src = 'https://i.pinimg.com/564x/29/b8/d2/29b8d250380266eb04be05fe21ef19a7.jpg';
-    }
+//     const avatarPhotoElement = document.querySelector('.profile-container .user-info .avatar img');
+//     if(UserProfile.profilePicture){
+//         avatarPhotoElement.src = `/userImg/${UserProfile.profilePicture}`;
+//     } else {
+//         avatarPhotoElement.src = '/userImg/avatar.jpg';
+//     }
 
-    const username = document.querySelector('.profile-container .user-info .user-details .user-name');
-    username.textContent  = `${UserProfile.fullname}`;
+//     const username = document.querySelector('.profile-container .user-info .user-details .user-name');
+//     username.textContent  = `${UserProfile.fullname}`;
 
-    var userDetailsSection = document.querySelector('.user-details-section');
-        var newParagraph = document.createElement('p');
-        newParagraph.textContent = 'Bio: ' + `${UserProfile.bio}`;
-        userDetailsSection.appendChild(newParagraph);
+//     var userDetailsSection = document.querySelector('.user-details-section');
+//         var newParagraph = document.createElement('p');
+//         newParagraph.textContent = 'Bio: ' + `${UserProfile.bio}`;
+//         userDetailsSection.appendChild(newParagraph);
 
-        var birthday = formatDate(UserProfile.birthday);
-        var newParagraph1 = document.createElement('p');
-        newParagraph1.textContent = 'Birthday: ' + `${birthday}`;
-        userDetailsSection.appendChild(newParagraph1);
+//         var birthday = formatDate(UserProfile.birthday);
+//         var newParagraph1 = document.createElement('p');
+//         newParagraph1.textContent = 'Birthday: ' + `${birthday}`;
+//         userDetailsSection.appendChild(newParagraph1);
 
-        showUserPost(user, UserProfile, posts);
-}
+//         const postsUser = posts.filter(item => item.createdBy == UserProfile._id);
+//         showPost(postsUser, 'user-posts-section');
+// }
 
-async function showUserPost(currUser, user, posts) {
-    console.log(" showUserPost");
-    // console.log(" showPost user",user);
+//Tạm thời ko dùng đến
+// async function showUserPost(currUser, user, posts) {
+//     console.log(" showUserPost");
+//     // console.log(" showPost user",user);
 
-    const postsUser = posts.filter(item => item.createdBy == user._id);
-    // console.log(" user._id ",user._id);
+//     const postsUser = posts.filter(item => item.createdBy == user._id);
+//     // console.log(" user._id ",user._id);
     
-    console.log(" postsUser ",postsUser);
-    // console.log(" currUser ",currUser);
-    // console.log(" user ",user);
+//     console.log(" postsUser ",postsUser);
+//     // console.log(" currUser ",currUser);
+//     // console.log(" user ",user);
 
-    var postContentContainer = document.querySelector('.user-posts-section');
-    var dataLength = postsUser.length;
+//     var postContentContainer = document.querySelector('.user-posts-section');
+//     var dataLength = postsUser.length;
     
-    console.log(" dataLength ",dataLength);
+//     console.log(" dataLength ",dataLength);
     
 
-    var postContent = ``;
-    for (let i = 0; i < dataLength; i++) {
-        var postCreatedAt = formatDateAndTooltip1(postsUser[i].createdAt);
-        var postCreatedAtTooltip = formatDateAndTooltip2(postsUser[i].createdAt);
-        const likesPost = likesArr.filter(item => item.likePostId == postsUser[i]._id);
+//     var postContent = ``;
+//     for (let i = 0; i < dataLength; i++) {
+//         var postCreatedAt = formatDateAndTooltip1(postsUser[i].createdAt);
+//         var postCreatedAtTooltip = formatDateAndTooltip2(postsUser[i].createdAt);
+//         const likesPost = likesArr.filter(item => item.likePostId == postsUser[i]._id);
 
-        var likedClass = '';
-        const isExist = likesPost.some(item => item.userId == user._id);
+//         var likedClass = '';
+//         const isExist = likesPost.some(item => item.userId == user._id);
 
-        if (isExist) {
-            likedClass = 'liked';
-        } 
-        postContent += `
-        <div class="post-content-container1 post" id="post-${ postsUser[i]._id }">
-            <!-- Khối thông tin người đăng -->
-            <div class="author-info">
-                <div class="avatar-container image-container user-page" data-value="${ postsUser[i].createdBy }">
-                    <!-- Avatar của người đăng -->
-                    <img src="${user.profilePicture}" alt="Avatar">
-                </div>
-                <div>
-                    <div class="author-name user-page" data-value="${ postsUser[i].createdBy }">
-                        ${user.fullname}
-                    </div>
-                    <div class="post-create" id="date-containers" data-value="${ postsUser[i]._id }">
-                        <span class="post-create1 post-create-${ postsUser[i]._id }" data-post-id="${postsUser[i]._id}">${ postCreatedAt }</span>
-                        <div class="tooltip1 tooltip1-${ postsUser[i]._id }"> <span>${postCreatedAtTooltip}</span></div>
-                    </div>
+//         if (isExist) {
+//             likedClass = 'liked';
+//         } 
+//         postContent += `
+//         <div class="post-content-container1 post" id="post-${ postsUser[i]._id }">
+//             <!-- Khối thông tin người đăng -->
+//             <div class="author-info">
+//                 <div class="avatar-container image-container user-page" data-value="${ postsUser[i].createdBy }">
+//                     <!-- Avatar của người đăng -->
+//                     <img src="/userImg/${user.profilePicture}" alt="Avatar">
+//                 </div>
+//                 <div>
+//                     <div class="author-name user-page" data-value="${ postsUser[i].createdBy }">
+//                         ${user.fullname}
+//                     </div>
+//                     <div class="post-create" id="date-containers" data-value="${ postsUser[i]._id }">
+//                         <span class="post-create1 post-create-${ postsUser[i]._id }" data-post-id="${postsUser[i]._id}">${ postCreatedAt }</span>
+//                         <div class="tooltip1 tooltip1-${ postsUser[i]._id }"> <span>${postCreatedAtTooltip}</span></div>
+//                     </div>
                     
-                </div>
+//                 </div>
 
-                <div class="options">
-                    <!-- Biểu tượng công khai -->
-                    <div class="privacy-icon">
-                        <i class="fa-solid fa-globe"></i>
-                    </div>
+//                 <div class="options">
+//                     <!-- Biểu tượng công khai -->
+//                     <div class="privacy-icon">
+//                         <i class="fa-solid fa-globe"></i>
+//                     </div>
 
-                    <div class="dropdown-menu-post-container">
-                        <!-- Biểu tượng dấu ba chấm -->
-                        <i class="fa-solid fa-ellipsis-v fa-ellipsis-v-${ postsUser[i]._id }" data-post-id="${postsUser[i]._id}" data-post-user="${currUser._id}"></i>
-                        <!-- Dropdown menu -->
-                        <div class="dropdown-menu-post dropdown-menu-post-${ postsUser[i]._id }">
-                            <ul>
-                                <button id="update-post" data-value="${ postsUser[i]._id }" title="Cập nhật dữ liệu" class="btn update-btn btn-link"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deletePost('${ postsUser[i]._id }');" title="Xoá" class="btn delete-btn btn-link"><i class="fa-solid fa-trash"></i></button>
-                            </ul>
-                        </div>
-                    </div>
+//                     <div class="dropdown-menu-post-container">
+//                         <!-- Biểu tượng dấu ba chấm -->
+//                         <i class="fa-solid fa-ellipsis-v fa-ellipsis-v-${ postsUser[i]._id }" data-post-id="${postsUser[i]._id}" data-post-user="${currUser._id}"></i>
+//                         <!-- Dropdown menu -->
+//                         <div class="dropdown-menu-post dropdown-menu-post-${ postsUser[i]._id }">
+//                             <ul>
+//                                 <button id="update-post" data-value="${ postsUser[i]._id }" title="Cập nhật dữ liệu" class="btn update-btn btn-link"><i class="fa-solid fa-pen"></i></button>
+//                                 <button onclick="deletePost('${ postsUser[i]._id }');" title="Xoá" class="btn delete-btn btn-link"><i class="fa-solid fa-trash"></i></button>
+//                             </ul>
+//                         </div>
+//                     </div>
 
                     
-                </div>
-            </div>
+//                 </div>
+//             </div>
         
-            <!-- Khối description và ảnh -->
-            <div class="post-content">
-                <!-- Description -->
-                <span class="description">${postsUser[i].description}</span>
-                <!-- Ảnh -->
-                <div class="image-upload">
+//             <!-- Khối description và ảnh -->
+//             <div class="post-content">
+//                 <!-- Description -->
+//                 <span class="description">${postsUser[i].description}</span>
+//                 <!-- Ảnh -->
+//                 <div class="image-upload">
                     
-                    <!-- Hiển thị ảnh được tải lên -->
-                    <div class="preview-images">
-                        <img src="${postsUser[i].photo[0]}" alt="">
-                    </div>
-                </div>
-            </div>
+//                     <!-- Hiển thị ảnh được tải lên -->
+//                     <div class="preview-images">
+//                         <img src="/postImg/${postsUser[i].photo[0]}" alt="">
+//                     </div>
+//                 </div>
+//             </div>
         
-            <div class="interaction-buttons-${postsUser[i]._id}">
-                <div class="like-count">
-                    <i class="fa-solid fa-thumbs-up"></i> 
-                    <span> ${likesPost.length} likes </span>
-                </div>
-                <div class="interaction-buttons" data-post-id="${postsUser[i]._id}">
-                    <!-- Nút like -->
-                    <button class="like-button ${ likedClass }"><i class="fa-solid fa-thumbs-up"></i> Like</button>
-                    <!-- Nút comment -->
-                    <button class="comment-button"><i class="fa-solid fa-comment"></i> Comment</button>
-                    <!-- Nút chia sẻ -->
-                    <button class="share-button"><i class="fa-solid fa-share"></i> Share</button>
-                </div>
-            </div>
+//             <div class="interaction-buttons-${postsUser[i]._id}">
+//                 <div class="like-count">
+//                     <i class="fa-solid fa-thumbs-up"></i> 
+//                     <span> ${likesPost.length} likes </span>
+//                 </div>
+//                 <div class="interaction-buttons" data-post-id="${postsUser[i]._id}">
+//                     <!-- Nút like -->
+//                     <button class="like-button ${ likedClass }"><i class="fa-solid fa-thumbs-up"></i> Like</button>
+//                     <!-- Nút comment -->
+//                     <button class="comment-button"><i class="fa-solid fa-comment"></i> Comment</button>
+//                     <!-- Nút chia sẻ -->
+//                     <button class="share-button"><i class="fa-solid fa-share"></i> Share</button>
+//                 </div>
+//             </div>
             
         
-            <!-- Khối hiển thị comment -->
-            <div class="comments-section">
-                <div class="comment-input">
-                    <div class="avatar-container">
-                        <img src="${currUser.profilePicture}" alt="Avatar">
-                    </div>
-                    <input type="text" class="comment-text" placeholder="Viết bình luận...">
-                    <button class="send-comment-button"><i class="fa-solid fa-paper-plane"></i></button>
-                </div>
-                <div class="comments">
-                    <!-- Các comment sẽ được hiển thị ở đây -->
-                </div>
-            </div>
-        </div>
+//             <!-- Khối hiển thị comment -->
+//             <div class="comments-section">
+//                 <div class="comment-input">
+//                     <div class="avatar-container">
+//                         <img src="/userImg/${currUser.profilePicture}" alt="Avatar">
+//                     </div>
+//                     <input type="text" class="comment-text" placeholder="Viết bình luận...">
+//                     <button class="send-comment-button"><i class="fa-solid fa-paper-plane"></i></button>
+//                 </div>
+//                 <div class="comments">
+//                     <!-- Các comment sẽ được hiển thị ở đây -->
+//                 </div>
+//             </div>
+//         </div>
     
-        `
-        // console.log("postContent", postContent)
+//         `
+//         // console.log("postContent", postContent)
 
-    }
-    postContentContainer.innerHTML += postContent;
+//     }
+//     postContentContainer.innerHTML += postContent;
 
-}
+// }
 
 function getQueryParam(param) {
     var urlParams = new URLSearchParams(window.location.search);
@@ -2025,28 +2072,14 @@ function displayImage(imageUrl) {
 }
 
 function displayImage1(imageUrl, className) {
-    // console.log("displayImage PHOTOVALUE", photoValues1);
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    // Đặt kích thước cho ảnh (có thể thay đổi tùy ý)
-    img.style.maxWidth = '100px';
-    img.style.maxHeight = '100px';
-
-    const imageContainer = document.createElement('div');
-    imageContainer.classList.add('image-container');
-
-    const deleteButton = document.createElement('button');
-    deleteButton.classList.add('Xbuttonimage');
-    // Thêm nội dung cho nút "X" (có thể sử dụng ký hiệu X hoặc biểu tượng X)
-    deleteButton.textContent = 'X';
-
-    // Thêm thẻ <img> và nút "X" vào khối <div> chứa ảnh
-    imageContainer.appendChild(img);
-    imageContainer.appendChild(deleteButton);
-
-    // Chèn khối <div> chứa ảnh và nút "X" vào khối "preview-images"
-    const previewContainer = document.querySelector(`.${className}`);
-    previewContainer.appendChild(imageContainer);
+    const imageHTML = `
+    <div class="image-container">
+        <img src="${imageUrl}" style="max-width: 200px; max-height: 200px;">
+        <button class="Xbuttonimage">X</button>
+    </div>
+    `;
+    const previewContainer = document.querySelector(`.${className}`); // Thay '.preview-container' bằng lớp CSS hoặc id của vị trí bạn muốn hiển thị
+    previewContainer.innerHTML += imageHTML;
 }
 
 function formatDate(isoDate) {
@@ -2285,8 +2318,6 @@ function updateComment (updateComment) {
     });
 }
 
-
-
 function saveComment(commentId) {
     console.log("saveComment");
 
@@ -2326,3 +2357,16 @@ function saveReplyComment(replyCommentId) {
     commentTextElement.show();
 
 }
+
+
+
+// module.exports = { displayFriendsList,
+//     createReplyCommentsHTML, createCommentsHTML, 
+//     fileReaderUserImage, fileReaderPostImage,
+//     search, showNotification, getQueryParam, findObjectById,
+//     showPost, creatNewPost, deletePost, updatePost,
+//     updateInfo, displayImage, displayImage1,
+//     formatDate, formatDate2, formatDateAndTooltip1, formatDateAndTooltip2, formatTimeAgo,
+//     createLike, deleteLike, createPeopleLikeList, getFullnameFromUserId,
+//     createNewComment, deleteComment, updateComment, saveComment, saveReplyComment
+//  };

@@ -1,7 +1,8 @@
 const express = require('express');
 const apiController = require('../controllers/apiController');
 const apiRouter = express.Router();
-
+const {removeVietnameseTones, renameImageFile, renameDocumentFile} = require('../utils/util')
+ 
 //login logout
 apiRouter.get('/style', apiController.getStyle); //chưa dùng 
 apiRouter.get('/user', apiController.getUser); 
@@ -31,14 +32,37 @@ apiRouter.delete('/friend', apiController.deleteFriend);
 
 const multer = require('multer');
 
-// Định cấu hình Multer để tải ảnh lên
-const upload = multer({ dest: 'uploads/',
-        limits: {
-            fileSize: 5 * 1024 * 1024 // no larger than 2mb
-        } 
-});
+const storageImagePost = multer.diskStorage({
+    destination: function (req, file, cb) {
+      // console.log("fileimage", file);
+      cb(null, './uploads/postImg/');
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now();
+      const cleanName = renameImageFile(file.originalname); 
+      cb(null,uniqueSuffix + '-' + cleanName);
+    }
+  })
+  
+const uploadImagePost = multer({ storage: storageImagePost })
+
+const storageImageUser = multer.diskStorage({
+    destination: function (req, file, cb) {
+      // console.log("fileimage", file);
+      cb(null, './uploads/userImg/');
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now();
+      const cleanName = renameImageFile(file.originalname); 
+      cb(null,uniqueSuffix + '-' + cleanName);
+    }
+  })
+  
+const uploadImageUser = multer({ storage: storageImageUser })
+
 
 // Xử lý yêu cầu tải ảnh lên
-apiRouter.post('/upload', upload.single('image'), apiController.uploadImage);
+apiRouter.post('/uploadPostImg', uploadImagePost.single('image'), apiController.uploadPostImg);
+apiRouter.post('/uploadUserImg', uploadImageUser.single('image'), apiController.uploadUserImg);
 
 module.exports = apiRouter;
