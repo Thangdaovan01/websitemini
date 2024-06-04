@@ -2,6 +2,27 @@ const express = require('express');
 const { generateToken, decodeToken } = require('../middleware/authentication');
 const { config } = require('../config/config.js');
 const mongoose = require('mongoose');
+const pdf = require('pdf-parse');
+const pathA = require('path');
+const elasticsearch = require('elasticsearch');
+const fs = require('fs');
+
+const client = new elasticsearch.Client({
+    host: 'localhost:9200'
+});
+
+async function checkElasticsearchConnection() {
+    try { 
+        // Gửi yêu cầu ping đến Elasticsearch
+        const body = await client.ping();
+        console.log('Kết nối với Elasticsearch thành công:', body);
+    } catch (error) {
+        console.error('Lỗi khi kết nối đến Elasticsearch:', error);
+    }
+}
+
+// Gọi hàm kiểm tra kết nối
+checkElasticsearchConnection();
 
 const User = require('../models/User')
 const Post = require('../models/Post')
@@ -94,6 +115,23 @@ const getUser = async (req, res) => {
     }
 }
 
+const getUsers = async (req, res) => {
+    try {
+
+        // const token = req.header('Authorize');
+        const token = decodeToken(req.header('Authorize'));
+        const existingUser = await User.findOne({ user_name: token.user_name });
+        const users = await User.find({  });
+
+        // console.log("posts",posts);
+        return res.status(200).json({user : existingUser, users: users });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json({message: 'Server error'});
+    }
+}
+
 const getStyle = async (req, res) => {
     try {
         Excel.find({}) 
@@ -168,6 +206,7 @@ const createPost = async (req, res) => {
 
         newPost.createdBy = existingUser._id;
         newPost.updatedBy = null;
+        console.log("newPost", newPost)
 
         const excel = new Post(newPost);
         await excel.save();
@@ -589,13 +628,316 @@ const uploadUserImg =  async (req, res) => {
 };
 
 
+
+const getSearchDocument = async (req, res) => {
+
+    console.log("Get Search getSearchDocument");
+
+    try {
+        const { query } = req.query;
+        console.log("query",query);
+
+      
+        // res.json(hits.hits.map(hit => hit._source));
+        const body = await client.search({
+            index: 'documents',
+            body: {
+                query: {
+                    bool: {
+                        should: [
+                            { match_phrase: { title: query } },
+                            { match_phrase: { description: query } },
+                            { match_phrase: { documentText: query } },
+                            { match_phrase: { subject: query } },
+                            { match_phrase: { school: query } }
+                        ]
+                    }
+                }
+            }
+        });
+        // console.log("body",body.hits.hits);
+        const searchLength=body.hits.total.value;
+        const newArray = body.hits.hits.map(item => ({
+            _id: item._id,
+            title: item._source.title,
+            subject: item._source.subject,
+            school: item._source.school,
+            document: item._source.document,
+            documentImage: item._source.documentImage,
+            createdAt: item._source.createdAt,
+            createdBy: item._source.createdBy,
+            description: item._source.description,
+        }));
+          
+        // console.log(newArray);
+        return res.status(200).json({ data: newArray, searchLength:searchLength });
+        
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json({message: 'Server error'});
+    }
+}
+
+const createDocument = async (req, res) => {
+
+    console.log("Get createDocument");
+
+    try {
+        const newDocument = req.body.newDocument;
+        console.log("newDocument", newDocument);
+
+        const documentPath = pathA.resolve(__dirname, '../uploads/documents', newDocument.document);
+
+        // Đọc nội dung của tệp PDF
+        let dataBuffer = fs.readFileSync(documentPath);
+        let documentText;
+        try {
+            const data = await pdf(dataBuffer);
+            documentText = data.text;
+        } catch (err) {
+            console.error('Đã xảy ra lỗi trong quá trình chuyển đổi:', err);
+            return res.status(500).json({ message: 'Lỗi trong quá trình chuyển đổi PDF' });
+        }
+
+        const token = req.header('Authorize');
+        if (!token) {
+            return res.status(401).json({ message: 'Không xác thực được danh tính' })
+        }
+        const checkAcc = decodeToken(token);
+        const existingUser = await User.findOne({ user_name: checkAcc.user_name });
+
+        //Tạo bài đăng mới
+        var photo = [ newDocument.documentImage ];
+        var newPost = {
+            title: newDocument.title,
+            description: newDocument.description,
+            photo: photo,
+            privacy: 'public',
+        }
+        newPost.createdBy = existingUser._id;
+        newPost.updatedBy = null;
+
+        // console.log("newPost.createdBy", existingUser._id);
+        // console.log("newPost", newPost);
+
+        // const excel = new Post(newPost);
+        // await excel.save();
+
+
+        // Lưu tài liệu và thông tin vào Elasticsearch
+        const checkIndex1 = await client.indices.exists({
+            index: 'documents'  
+        });
+
+        console.log("checkIndex1", checkIndex1)
+
+        if (checkIndex1) {
+            // Nếu đã tồn tại index 'documents'
+            const response = await client.index({
+                index: 'documents',
+                body: {
+                    title: newDocument.title,
+                    description: newDocument.description,
+                    documentText: documentText,
+                    subject: newDocument.subject,
+                    school: newDocument.school,
+                    document: newDocument.document,
+                    documentImage: newDocument.documentImage,
+                    createdAt: Date.now(),
+                    createdBy: existingUser ? existingUser._id : null
+                }
+            });
+            console.log("response", response);
+            newPost.documentId = response._id;
+            var excel = new Post(newPost);
+            await excel.save();
+            return res.status(200).json({ message: 'Đã thêm dữ liệu mới.' });
+        } else {
+            // Nếu index 'documents' chưa tồn tại, tạo mới và thêm dữ liệu
+            await client.indices.create({
+                index: 'documents',
+            });
+            const response = await client.index({
+                index: 'documents',
+                body: {
+                    title: newDocument.title,
+                    description: newDocument.description,
+                    documentText: documentText,
+                    subject: newDocument.subject,
+                    school: newDocument.school,
+                    document: newDocument.document,
+                    documentImage: newDocument.documentImage,
+                    createdAt: Date.now(),
+                    createdBy: existingUser ? existingUser._id : null
+                }
+            });
+            newPost.documentId = response._id;
+            var excel = new Post(newPost);
+            await excel.save();
+            return res.status(200).json({ message: 'Đã thêm dữ liệu mới.' });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json({message: 'Server error'});
+    }
+}
+
+const updateDocument = async (req, res) => {
+
+    console.log("Get updateDocument");
+
+    try {
+        const documentId = req.body.documentId;
+        console.log("documentId", documentId);
+
+        const token = req.header('Authorize');
+        if (!token) {
+            return res.status(401).json({ message: 'Không xác thực được danh tính' })
+        }
+        const checkAcc = decodeToken(token);
+        const existingUser = await User.findOne({ user_name: checkAcc.user_name });
+        var currId = existingUser._id;
+
+        const documentValue = await client.get({
+            index: 'documents',
+            id: documentId
+        });
+        // console.log("documentValue", documentValue);
+        var viewValue = documentValue._source.viewValue;
+        var viewCount = documentValue._source.viewCount;
+        console.log("viewValue", viewValue);
+        console.log("viewCount", viewCount);
+
+        if(!documentValue._source.viewValue){
+            viewValue = [
+                {
+                    viewAt: Date.now(),
+                    viewBy: existingUser ? currId : null,
+                }
+            ];
+            viewCount = 1;
+        } else {
+            viewValue = viewValue.filter(obj => obj.viewBy != currId);
+            viewValue.push(
+                {
+                    viewAt: Date.now(),
+                    viewBy: existingUser ? currId : null
+                }
+            )
+            viewCount += 1;
+        }
+        console.log("viewValue1", viewValue);
+        console.log("viewCount1", viewCount);
+
+        if(documentValue){
+            const response = await client.update({
+                index: 'documents',
+                id: documentId,
+                body: {
+                    doc: {
+                        viewValue: viewValue,
+                        viewCount: viewCount
+                    }
+                }
+            });
+            return res.status(200).json({ message: 'Cập nhật view document thành công' });
+
+        }
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json({message: 'Server error'});
+    }
+}
+
+const getDocuments = async (req, res) => {
+    // const documentId = req.params.id;
+    // console.log("documentId",documentId);
+
+    try {
+        const checkIndex = await client.indices.exists({
+            index: 'documents'  // Tên của index cần kiểm tra
+        });
+    
+        if(checkIndex){
+            const body = await client.search({
+                index: 'documents',
+                body: {
+                    query: {
+                        match_all: {}
+                    },
+                    size: 1000
+                }
+            });
+            const newArray = body.hits.hits.map(({ _id, _source: { title, description, school , subject, document, documentImage, createdAt, createdBy } }) => ({ _id, title, description, school , subject, document, documentImage, createdAt, createdBy }));
+            return res.status(200).json({ documents: newArray });
+
+        } else {
+            return res.status(400).json({ message: 'Không có tài liệu nào' })
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json({message: 'Server error'});
+    }
+}
+
+const getDocument= async (req, res) => {
+    const documentId = req.params.id;
+
+    try {
+        const checkIndex = await client.indices.exists({
+            index: 'documents'  // Tên của index cần kiểm tra
+        });
+    
+        if(checkIndex){
+            const findDocument = await client.get({
+                index: 'documents',
+                id: documentId
+            });
+            // console.log("findDocument",findDocument);
+            // const newArray = body.hits.hits.map(({ _id, _source: { title, description, school , subject, document, documentImage, createdAt, createdBy } }) => ({ _id, title, description, school , subject, document, documentImage, createdAt, createdBy }));
+
+            const { _id, _source: { title, description, school , subject, document, documentImage, createdAt, createdBy } } = findDocument;
+            const resultObject = { _id, title, description, school , subject, document, documentImage, createdAt, createdBy };
+            return res.status(200).json({ document: resultObject });
+        } else {
+            return res.status(400).json({ message: 'Không có tài liệu nào' })
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json({message: 'Server error'});
+    }
+}
+
+const uploadDocumentFile =  async (req, res) => {
+    try {
+        res.status(200).json({ filename: req.file.filename });
+    } catch (error) {
+        console.error("Error uploading image:", error);
+        res.status(500).json({ message: 'Lỗi khi tải ảnh lên Cloudinary' });
+    }
+};
+
+const uploadDocumentImageFile =  async (req, res) => {
+    try {
+        res.status(200).json({ filename: req.file.filename });
+    } catch (error) {
+        console.error("Error uploading image:", error);
+        res.status(500).json({ message: 'Lỗi khi tải ảnh lên Cloudinary' });
+    }
+};
+
+
 module.exports = {
-    login, register, getUser,
+    login, register, getUser, getUsers,
     getStyle, 
     deletePost, createPost, updatePost, getRow,
     updateUserProfile,
     createLike, deleteLike,
     createComment, updateComment, deleteComment,
     createFriend, updateFriend, deleteFriend,
-    uploadPostImg, uploadUserImg
+    uploadPostImg, uploadUserImg,
+    createDocument, getDocuments, getDocument, getSearchDocument, updateDocument,
+    uploadDocumentFile, uploadDocumentImageFile
 }

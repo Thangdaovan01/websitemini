@@ -206,6 +206,13 @@
     font-weight: bold;
 }
 
+.author-name span{
+    font-weight: 100;
+    font-size: 12px;
+    font-style: italic;
+    margin-left: 10px;
+}
+
 .options {
     margin-left: auto;
     display: flex;
@@ -420,4 +427,8 @@
 }
 .friends-list {
     display: none;
+}
+
+.document-post-content .preview-images {
+    cursor: pointer;
 }

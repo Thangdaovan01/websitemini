@@ -28,6 +28,7 @@ const getHomepage = async (req, res) => {
     }
 }
 
+//Chưa dùng
 const getAdminPage = async (req, res) => {
     try {
         return res.status(200).render('admin/homepage');
@@ -37,7 +38,25 @@ const getAdminPage = async (req, res) => {
     }
 }
 
+const getDocument = async (req, res) => {
+    try {
+        return res.status(200).render('document');
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json('Server error');
+    }
+} 
+const getDocumentFilename = async (req, res) => {
+    try {
+        return res.status(200).render('documentfile');
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json('Server error');
+    }
+}
+
 module.exports = {
     getLoginPage, getHomepage,
-    getAdminPage, getUserPage
+    getAdminPage, getUserPage,
+    getDocument, getDocumentFilename
 }

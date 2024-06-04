@@ -997,10 +997,52 @@ $(document).ready(function() {
         });
     })
 
-    
+    $(document).on('click','.document-post-content', async function(event) {
+        event.stopPropagation();
+        var documentId = $(this).closest('.document-post-content').data('document-id');
+        updateDocument(documentId);
+        if(documentId){
+            window.location.href = `http://localhost:3000/document/${documentId}`;
+        }
+    })
 
     
+
 });
+
+
+function updateDocument(documentId) {
+    console.log("UPDATE");
+
+    fetch('http://localhost:3000/api/document', {
+        method: "PUT",
+        headers: {
+            "Content-Type" : "application/json",
+            "Authorize" : token
+        },
+        body:JSON.stringify({documentId:documentId})
+    })
+    .then(response => {
+        return response.json().then(data => {
+            if (!response.ok) {
+                showNotification(data.message);
+                throw new Error('Network response was not ok');
+            }
+            return data;
+        });
+    })
+    .then(result => {
+        showNotification(result.message);
+        console.log("result",result)
+        // setTimeout(function() {
+        //     window.location.href = 'http://localhost:3000/';
+        // }, 500);
+    
+    })
+    .catch(error => {
+        console.error('There was a problem with your fetch operation:', error);
+    });
+}
 
 function createReplyCommentsHTML(replyComments, users, likesArr, currUser, postId) {
     return replyComments.map(replyComment => {
@@ -1377,6 +1419,62 @@ async function showPost(postsArr, className) {
         var commentHtml = createCommentsHTML(commentsPost, users, likesArr, user);
         // console.log("commentsPost", commentsPost)
 
+        var documentTitle = postsArr[i].title;
+        if(!documentTitle){
+            var postAuthorName = `
+            <div>
+                <div class="author-name user-page" data-value="${ postsArr[i].createdBy }">
+                    ${userCreate.fullname} <span>đã thêm một bài đăng</span>
+                </div>
+                <div class="post-create" id="date-containers" data-value="${ postsArrId }">
+                    <span class="post-create1 post-create-${ postsArrId }" data-post-id="${postsArrId}">${ postCreatedAt }</span>
+                    <div class="tooltip1 tooltip1-${ postsArrId }"> <span>${postCreatedAtTooltip}</span></div>
+                </div>
+            </div>
+            `;
+            var postDesImg = `
+            <div class="post-content">
+                <!-- Description -->
+                <span class="description">${postsArr[i].description}</span>
+                <!-- Ảnh -->
+                <div class="image-upload">
+                    
+                    <!-- Hiển thị ảnh được tải lên -->
+                    <div class="preview-images">
+                        <img src="/postImg/${postsArr[i].photo[0]}" alt="">
+                    </div>
+                </div>
+            </div>
+            `
+        }else{
+            var postAuthorName = `
+            <div>
+                <div class="author-name user-page" data-value="${ postsArr[i].createdBy }">
+                    ${userCreate.fullname} <span>đã thêm một Tài liệu</span>
+                </div>
+                <div class="post-create" id="date-containers" data-value="${ postsArrId }">
+                    <span class="post-create1 post-create-${ postsArrId }" data-post-id="${postsArrId}">${ postCreatedAt }</span>
+                    <div class="tooltip1 tooltip1-${ postsArrId }"> <span>${postCreatedAtTooltip}</span></div>
+                </div>
+            </div>
+            `;
+            var postDesImg = `
+            <div class="post-content document-post-content" data-document-id=${postsArr[i].documentId}>
+                <!-- Description -->
+                <h5 class="title">${postsArr[i].title}</h5>
+                <span class="description">${postsArr[i].description}</span>
+                <!-- Ảnh -->
+                <div class="image-upload">
+                    
+                    <!-- Hiển thị ảnh được tải lên -->
+                    <div class="preview-images">
+                        <img src="/documentsImg/${postsArr[i].photo[0]}" alt="">
+                    </div>
+                </div>
+            </div>
+            `
+        }
+
         postContent += `
         <div class="post-content-container1 post-content-container1-${postsArrId}" id="post-${ postsArrId }" data-post-id="${postsArrId}">
             <!-- Khối thông tin người đăng -->
@@ -1385,16 +1483,7 @@ async function showPost(postsArr, className) {
                     <!-- Avatar của người đăng -->
                     <img src="/userImg/${userCreate.profilePicture}" alt="Avatar">
                 </div>
-                <div>
-                    <div class="author-name user-page" data-value="${ postsArr[i].createdBy }">
-                        ${userCreate.fullname}
-                    </div>
-                    <div class="post-create" id="date-containers" data-value="${ postsArrId }">
-                        <span class="post-create1 post-create-${ postsArrId }" data-post-id="${postsArrId}">${ postCreatedAt }</span>
-                        <div class="tooltip1 tooltip1-${ postsArrId }"> <span>${postCreatedAtTooltip}</span></div>
-                    </div>
-                    
-                </div>
+                ${postAuthorName}
                 <div class="options">
                     <!-- Biểu tượng công khai -->
                     <div class="privacy-icon">
@@ -1418,18 +1507,7 @@ async function showPost(postsArr, className) {
             </div>
         
             <!-- Khối description và ảnh -->
-            <div class="post-content">
-                <!-- Description -->
-                <span class="description">${postsArr[i].description}</span>
-                <!-- Ảnh -->
-                <div class="image-upload">
-                    
-                    <!-- Hiển thị ảnh được tải lên -->
-                    <div class="preview-images">
-                        <img src="/postImg/${postsArr[i].photo[0]}" alt="">
-                    </div>
-                </div>
-            </div>
+            ${postDesImg}
         
             <!-- Khối like, comment, share -->
             <div class="interaction-buttons-${postsArrId}">

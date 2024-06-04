@@ -6,6 +6,7 @@ const {removeVietnameseTones, renameImageFile, renameDocumentFile} = require('..
 //login logout
 apiRouter.get('/style', apiController.getStyle); //chưa dùng 
 apiRouter.get('/user', apiController.getUser); 
+apiRouter.get('/users', apiController.getUsers); 
 
 apiRouter.post('/login', apiController.login);
 apiRouter.post('/register', apiController.register);
@@ -28,6 +29,12 @@ apiRouter.delete('/comment', apiController.deleteComment);
 apiRouter.post('/friend', apiController.createFriend);
 apiRouter.put('/friend', apiController.updateFriend);
 apiRouter.delete('/friend', apiController.deleteFriend);
+
+apiRouter.get('/searchDocument', apiController.getSearchDocument); 
+apiRouter.post('/document', apiController.createDocument); 
+apiRouter.put('/document', apiController.updateDocument); 
+apiRouter.get('/documents', apiController.getDocuments); 
+apiRouter.get('/document/:id', apiController.getDocument); 
 
 
 const multer = require('multer');
@@ -60,9 +67,41 @@ const storageImageUser = multer.diskStorage({
   
 const uploadImageUser = multer({ storage: storageImageUser })
 
+const storageDocument = multer.diskStorage({
+  destination: function (req, file, cb) {
+    // console.log("filedocument", file);
+    cb(null, './uploads/documents/')
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now();
+    const cleanName = renameDocumentFile(file.originalname); 
+    cb(null,uniqueSuffix + '-' + cleanName);
+  }
+})
+
+const uploadDocument = multer({ storage: storageDocument })
+
+const storageImage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    // console.log("fileimage", file);
+    cb(null, './uploads/documentsImg/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now();
+    const cleanName = renameDocumentFile(file.originalname); 
+    cb(null,uniqueSuffix + '-' + cleanName);
+  }
+})
+
+const uploadDocImg = multer({ storage: storageImage })
 
 // Xử lý yêu cầu tải ảnh lên
 apiRouter.post('/uploadPostImg', uploadImagePost.single('image'), apiController.uploadPostImg);
 apiRouter.post('/uploadUserImg', uploadImageUser.single('image'), apiController.uploadUserImg);
+
+// Xử lý yêu cầu tải ảnh lên
+apiRouter.post('/uploadDocument', uploadDocument.single('document'), apiController.uploadDocumentFile);
+apiRouter.post('/uploadDocumentImage', uploadDocImg.single('documentImage'), apiController.uploadDocumentImageFile);
+
 
 module.exports = apiRouter;

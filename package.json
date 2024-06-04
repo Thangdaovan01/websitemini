@@ -24,9 +24,11 @@
     "cloudinary-core": "^2.13.1",
     "connect-mongo": "^5.1.0",
     "ejs": "^3.1.10",
+    "elasticsearch": "^16.7.3",
     "express": "^4.19.2",
     "express-handlebars": "^7.1.2",
     "express-session": "^1.18.0",
+    "get-json": "^1.0.1",
     "jsonwebtoken": "^9.0.2",
     "lodash.omit": "^4.5.0",
     "method-override": "^3.0.0",
@@ -35,6 +37,7 @@
     "mongoose-delete": "^1.0.2",
     "multer": "^1.4.5-lts.1",
     "node-sass": "^9.0.0",
+    "pdf-parse": "^1.1.1",
     "sass": "^1.76.0"
   },
   "devDependencies": {

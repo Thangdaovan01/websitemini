@@ -7,6 +7,8 @@ const Post = new Schema({
     updatedBy: {type: Schema.Types.ObjectId, ref: 'User', default: ''},
     privacy: { type: String, default: 'public',  enum: ['public', 'friend', 'only'] },
     description: { type: String, default: '' },
+    title: { type: String, default: '' },
+    documentId: { type: String, default: '' },
     photo: [{ type: String, default: '' }],
     video: [{ type: String, default: '' }], 
 
