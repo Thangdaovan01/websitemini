@@ -589,7 +589,7 @@ $(document).ready(function() {
 
         const commentInput = $(this).siblings('.comment-text');
         const commentText = commentInput.val().trim();
-        const commentsContainer = $('.comments');
+        const commentsContainer = $(`.comments-${ postId }`);
         // console.log("commentText",commentText);
         // console.log("userId",user._id);
         // console.log("postId",postId);
@@ -791,7 +791,6 @@ $(document).ready(function() {
         likeCountElement.textContent = totalLikes + ' likes';
     })
 
-
     $(document).on('click', '.reply-comment', function(event) {
         event.stopPropagation();
         console.log("reply-comment");
@@ -956,7 +955,6 @@ $(document).ready(function() {
         likeCountElement.textContent = totalLikes + ' likes';
     })
 
-
     $(document).on('mouseover','.like-comment-count',  function(event) {
         event.stopPropagation();
         // console.log("mouseover");
@@ -999,244 +997,10 @@ $(document).ready(function() {
         });
     })
 
-    $(document).on('click','.add-friend-btn',  function(event) {
-        event.stopPropagation();
-        const urlParams = new URLSearchParams(window.location.search);
-        const friendId = urlParams.get('id');
-        const $this = $(this);
-        var newFriend = {
-            userId: user._id,
-            friendId: friendId,
-            status: 'pending'
-        }
-
-        fetch('http://localhost:3000/api/friend', {
-            method: "POST",
-            headers: {
-                "Content-Type" : "application/json",
-                "Authorize" : token
-            },
-            body:JSON.stringify(newFriend)
-        })
-        .then(response => {
-            return response.json().then(data => {
-                if (!response.ok) {
-                    showNotification(data.message);
-                    throw new Error('Network response was not ok');
-                }
-                return data;
-            });
-        })
-        .then(result => {
-            // console.log("FRIEND THÀNH CÔNG",result);
-            $this.addClass('hidden');
-            $('.cancel-friend-btn').removeClass('hidden');
-        })
-        .catch(error => {
-            console.error('There was a problem with your fetch operation:', error);
-        });
-        
-    });
-
-    $(document).on('click','.cancel-friend-btn, .friends-btn',  function(event) {
-        event.stopPropagation();
-        console.log("Huý kết bạn");
-        const $this = $(this);
-        const urlParams = new URLSearchParams(window.location.search);
-        const friendId = urlParams.get('id');
-        console.log("friendId",friendId);
-
-        var cancelFriend = {
-            userId: user._id,
-            friendId: friendId,
-        }
-        if(confirm("Huỷ kết bạn")){
-            fetch(`http://localhost:3000/api/friend`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type':'application/json'
-                },
-                body: JSON.stringify(cancelFriend)
-            })
-            .then(response => {
-                if(!response.ok){
-                    throw new Error("Network response not ok!");
-                }
-                return response.json();
-            })
-            .then(result =>{
-                console.log(result);
     
-                $this.addClass('hidden');
-                $('.add-friend-btn').removeClass('hidden');
-                friendsArr = result.friendsArr;
-            })
-            .catch(error => {
-                console.error('There was a problem with your fetch operation:', error);
-            });
-        }
-
-        
-    });
-
-    $(document).on('click','.friends-btn1',  function(event) {
-        event.stopPropagation();
-        console.log("Huý kết bạn");
-        const $this = $(this);
-        const viewprofileFriendId = $(this).closest('.friend').attr('data-viewprofile-friend-id');
-        const viewprofileId = $(this).closest('.friend').attr('data-viewprofile-id');
-        const friendElementId = $(this).closest('.friend').attr('data-friend-id');
-        const currUserId = user._id;
-
-        var cancelFriend = {
-            userId: viewprofileId,
-            friendId: user._id,
-        }
-        if(currUserId == viewprofileId){
-            if(confirm("Huỷ kết bạn")){
-            fetch(`http://localhost:3000/api/friend`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type':'application/json'
-                },
-                body: JSON.stringify(cancelFriend)
-            })
-            .then(response => {
-                if(!response.ok){
-                    throw new Error("Network response not ok!");
-                }
-                return response.json();
-            })
-            .then(result =>{
-                console.log(result);
-    
-                $(this).closest(`.friend-${friendElementId}`).hide();
-                // $('.add-friend-btn').removeClass('hidden');
-                friendsArr = result.friendsArr;
-            })
-            .catch(error => {
-                console.error('There was a problem with your fetch operation:', error);
-            });
-        }
-        } else {
-            showNotification("Bạn không có quyền thực hiện");
-        }
-
-        
-    });
-
-    $(document).on('click','.accepted-friends-btn',  function(event) {
-        event.stopPropagation();
-        // const urlParams = new URLSearchParams(window.location.search);
-        // const friendId = urlParams.get('id');
-
-        const senderFriendId = $(this).closest('.friend').attr('data-sender-friend-id');
-        const friendElementId = $(this).closest('.friend').attr('data-friend-id');
-
-        const $this = $(this);
-        var updateFriend = {
-            _id: friendElementId,
-            userId: senderFriendId,
-            friendId: user._id,
-            status: 'accepted'
-        }
-
-        fetch('http://localhost:3000/api/friend', {
-            method: "PUT",
-            headers: {
-                "Content-Type" : "application/json",
-                "Authorize" : token
-            },
-            body:JSON.stringify(updateFriend)
-        })
-        .then(response => {
-            return response.json().then(data => {
-                if (!response.ok) {
-                    showNotification(data.message);
-                    throw new Error('Network response was not ok');
-                }
-                return data;
-            });
-        })
-        .then(result => {
-            $(this).text('Bạn bè');
-            $(this).removeClass('accepted-friends-btn').addClass('friends-btn1');
-            friendsArr = result.friendsArr;
-        })
-        .catch(error => {
-            console.error('There was a problem with your fetch operation:', error);
-        });
-        
-    });
-
-    $(document).on('click','.friends-list-btn, .posts-list-btn',  function(event) {
-        event.stopPropagation();
-        const urlParams = new URLSearchParams(window.location.search);
-        const friendId = urlParams.get('id'); //id người mà mk đang xem trang cá nhân
-        $('.friends-list').toggle();
-        $('.main-content').toggle(); // Ẩn hoặc hiện các khối div khác
-        
-        // const friendList = friendsArr.filter(friend => friend.friendId == friendId )
-        const friendList = friendsArr.filter(friend => friend.friendId === friendId || friend.userId === friendId);
-
-        console.log("friendList",friendList);
-
-        displayFriendsList(friendList, friendId);
-    });
-
-    
-
 
     
 });
-
-// Hàm để hiển thị danh sách bạn bè
-function displayFriendsList(friends, viewUserId) {
-    const friendsList = document.getElementById('friends-list');
-
-    // Xóa dữ liệu cũ
-    friendsList.innerHTML = '';
-    console.log("friendsArr",friendsArr);
-    console.log("friends",friends);
-    console.log("viewUserId",viewUserId);
-
-    // Lặp qua danh sách bạn bè và thêm vào giao diện
-    for (let i = 0; i < friends.length; i++) {
-        const friend = friends[i];
-        var senderFriendId2 = friend.friendId;
-        var senderFriendId = friend.userId;
-        const senderFriend = findObjectById(users, senderFriendId);  // cái này là người khác gửi đễn viewUserId
-        const senderFriend2 = findObjectById(users, senderFriendId2); //cái này là viewUserId gửi đến người khác
-    
-        // Chỉ hiển thị bạn bè nếu userId giống với id trên URL
-        if (friend.friendId == viewUserId) {
-            var friendElementHTML = `
-                <div class="friend friend-${friend._id}" data-friend-id="${friend._id}" data-viewprofile-friend-id="${senderFriendId}" data-viewprofile-id="${viewUserId}">
-                    <img src="/userImg/${senderFriend.profilePicture}" alt="">
-                    <span>${senderFriend.fullname}</span>
-                    <div class="actions">
-                        ${friend.status == 'pending' ? '<button class="btn accepted-friends-btn" >Chấp nhận</button>' : ''}
-                        ${friend.status == 'accepted' ? '<button class="btn friends-btn1">Bạn bè</button>' : ''}
-                    </div>
-                </div>
-            `;
-            friendsList.innerHTML += friendElementHTML;
-        } 
-        if ( friend.userId == viewUserId) {
-            var friendElementHTML1 = `
-                <div class="friend friend-${friend._id}" data-friend-id="${friend._id}" data-viewprofile-friend-id="${senderFriendId2}" data-viewprofile-id="${viewUserId}">
-                    <img src="/userImg/${senderFriend2.profilePicture}" alt="">
-                    <span>${senderFriend2.fullname}</span>
-                    <div class="actions">
-                        ${friend.status == 'pending' ? '<button class="btn accepted-friends-btn" >Đã gửi lời mời</button>' : ''}
-                        ${friend.status == 'accepted' ? '<button class="btn friends-btn1">Bạn bè</button>' : ''}
-                    </div>
-                </div>
-            `;
-            friendsList.innerHTML += friendElementHTML1;
-        }
-    }
-}
 
 function createReplyCommentsHTML(replyComments, users, likesArr, currUser, postId) {
     return replyComments.map(replyComment => {
@@ -1614,7 +1378,7 @@ async function showPost(postsArr, className) {
         // console.log("commentsPost", commentsPost)
 
         postContent += `
-        <div class="post-content-container1" id="post-${ postsArrId }" data-post-id="${postsArrId}">
+        <div class="post-content-container1 post-content-container1-${postsArrId}" id="post-${ postsArrId }" data-post-id="${postsArrId}">
             <!-- Khối thông tin người đăng -->
             <div class="author-info">
                 <div class="avatar-container image-container user-page" data-value="${ postsArr[i].createdBy }">
@@ -1706,200 +1470,6 @@ async function showPost(postsArr, className) {
     }
     
 }
-
-//Tạm thời ko dùng đến ở đây
-// async function showUser(user, users, posts, friendsArr){
-//     const imgElement = document.querySelector('.image-container img');
-//     imgElement.src = `/userImg/${user.profilePicture}`;
-
-//     var userId = getQueryParam('id'); //user mà đang xem trang cá nhân của họ
-    
-//     const friendVal = friendsArr.find(f => f.userId === user._id && f.friendId === userId);
-
-//     var UserProfile = findObjectById(users, userId); //mảng của người mà mk đang xem trang cá nhân
-    
-//     //Nếu người dùng đăng nhập đang xem trang của mình
-//     if (userId === user._id) {
-//         document.querySelector('.add-friend-btn').classList.add('hidden');
-//         document.querySelector('.edit-info-btn').classList.remove('hidden');
-//         document.querySelector('.post-header-container').classList.remove('hidden');
-
-//     } else {
-//         document.querySelector('.edit-info-btn').classList.add('hidden');
-//         document.querySelector('.post-header-container').classList.add('hidden');
-//         if(friendVal){
-//             var friendValStatus = friendVal.status;
-
-//             if(friendValStatus == 'pending'){
-//                 document.querySelector('.add-friend-btn').classList.add('hidden');
-//                 document.querySelector('.cancel-friend-btn').classList.remove('hidden');
-//                 document.querySelector('.friends-btn').classList.add('hidden');
-//             }
-
-//             if(friendValStatus == 'accepted'){
-//                 document.querySelector('.add-friend-btn').classList.add('hidden');
-//                 document.querySelector('.cancel-friend-btn').classList.add('hidden');
-//                 document.querySelector('.friends-btn').classList.remove('hidden');
-//             }
-//         } else {
-//             document.querySelector('.add-friend-btn').classList.remove('hidden');
-//         }
-//     }
-
-//     const coverPhotoElement = document.querySelector('.profile-container .cover-photo img');
-//     if(UserProfile.coverPicture){
-//         coverPhotoElement.src = `/userImg/${UserProfile.coverPicture}`;
-//     } else {
-//         coverPhotoElement.src = '/userImg/cover.jpg';
-//     }
-
-//     const avatarPhotoElement = document.querySelector('.profile-container .user-info .avatar img');
-//     if(UserProfile.profilePicture){
-//         avatarPhotoElement.src = `/userImg/${UserProfile.profilePicture}`;
-//     } else {
-//         avatarPhotoElement.src = '/userImg/avatar.jpg';
-//     }
-
-//     const username = document.querySelector('.profile-container .user-info .user-details .user-name');
-//     username.textContent  = `${UserProfile.fullname}`;
-
-//     var userDetailsSection = document.querySelector('.user-details-section');
-//         var newParagraph = document.createElement('p');
-//         newParagraph.textContent = 'Bio: ' + `${UserProfile.bio}`;
-//         userDetailsSection.appendChild(newParagraph);
-
-//         var birthday = formatDate(UserProfile.birthday);
-//         var newParagraph1 = document.createElement('p');
-//         newParagraph1.textContent = 'Birthday: ' + `${birthday}`;
-//         userDetailsSection.appendChild(newParagraph1);
-
-//         const postsUser = posts.filter(item => item.createdBy == UserProfile._id);
-//         showPost(postsUser, 'user-posts-section');
-// }
-
-//Tạm thời ko dùng đến
-// async function showUserPost(currUser, user, posts) {
-//     console.log(" showUserPost");
-//     // console.log(" showPost user",user);
-
-//     const postsUser = posts.filter(item => item.createdBy == user._id);
-//     // console.log(" user._id ",user._id);
-    
-//     console.log(" postsUser ",postsUser);
-//     // console.log(" currUser ",currUser);
-//     // console.log(" user ",user);
-
-//     var postContentContainer = document.querySelector('.user-posts-section');
-//     var dataLength = postsUser.length;
-    
-//     console.log(" dataLength ",dataLength);
-    
-
-//     var postContent = ``;
-//     for (let i = 0; i < dataLength; i++) {
-//         var postCreatedAt = formatDateAndTooltip1(postsUser[i].createdAt);
-//         var postCreatedAtTooltip = formatDateAndTooltip2(postsUser[i].createdAt);
-//         const likesPost = likesArr.filter(item => item.likePostId == postsUser[i]._id);
-
-//         var likedClass = '';
-//         const isExist = likesPost.some(item => item.userId == user._id);
-
-//         if (isExist) {
-//             likedClass = 'liked';
-//         } 
-//         postContent += `
-//         <div class="post-content-container1 post" id="post-${ postsUser[i]._id }">
-//             <!-- Khối thông tin người đăng -->
-//             <div class="author-info">
-//                 <div class="avatar-container image-container user-page" data-value="${ postsUser[i].createdBy }">
-//                     <!-- Avatar của người đăng -->
-//                     <img src="/userImg/${user.profilePicture}" alt="Avatar">
-//                 </div>
-//                 <div>
-//                     <div class="author-name user-page" data-value="${ postsUser[i].createdBy }">
-//                         ${user.fullname}
-//                     </div>
-//                     <div class="post-create" id="date-containers" data-value="${ postsUser[i]._id }">
-//                         <span class="post-create1 post-create-${ postsUser[i]._id }" data-post-id="${postsUser[i]._id}">${ postCreatedAt }</span>
-//                         <div class="tooltip1 tooltip1-${ postsUser[i]._id }"> <span>${postCreatedAtTooltip}</span></div>
-//                     </div>
-                    
-//                 </div>
-
-//                 <div class="options">
-//                     <!-- Biểu tượng công khai -->
-//                     <div class="privacy-icon">
-//                         <i class="fa-solid fa-globe"></i>
-//                     </div>
-
-//                     <div class="dropdown-menu-post-container">
-//                         <!-- Biểu tượng dấu ba chấm -->
-//                         <i class="fa-solid fa-ellipsis-v fa-ellipsis-v-${ postsUser[i]._id }" data-post-id="${postsUser[i]._id}" data-post-user="${currUser._id}"></i>
-//                         <!-- Dropdown menu -->
-//                         <div class="dropdown-menu-post dropdown-menu-post-${ postsUser[i]._id }">
-//                             <ul>
-//                                 <button id="update-post" data-value="${ postsUser[i]._id }" title="Cập nhật dữ liệu" class="btn update-btn btn-link"><i class="fa-solid fa-pen"></i></button>
-//                                 <button onclick="deletePost('${ postsUser[i]._id }');" title="Xoá" class="btn delete-btn btn-link"><i class="fa-solid fa-trash"></i></button>
-//                             </ul>
-//                         </div>
-//                     </div>
-
-                    
-//                 </div>
-//             </div>
-        
-//             <!-- Khối description và ảnh -->
-//             <div class="post-content">
-//                 <!-- Description -->
-//                 <span class="description">${postsUser[i].description}</span>
-//                 <!-- Ảnh -->
-//                 <div class="image-upload">
-                    
-//                     <!-- Hiển thị ảnh được tải lên -->
-//                     <div class="preview-images">
-//                         <img src="/postImg/${postsUser[i].photo[0]}" alt="">
-//                     </div>
-//                 </div>
-//             </div>
-        
-//             <div class="interaction-buttons-${postsUser[i]._id}">
-//                 <div class="like-count">
-//                     <i class="fa-solid fa-thumbs-up"></i> 
-//                     <span> ${likesPost.length} likes </span>
-//                 </div>
-//                 <div class="interaction-buttons" data-post-id="${postsUser[i]._id}">
-//                     <!-- Nút like -->
-//                     <button class="like-button ${ likedClass }"><i class="fa-solid fa-thumbs-up"></i> Like</button>
-//                     <!-- Nút comment -->
-//                     <button class="comment-button"><i class="fa-solid fa-comment"></i> Comment</button>
-//                     <!-- Nút chia sẻ -->
-//                     <button class="share-button"><i class="fa-solid fa-share"></i> Share</button>
-//                 </div>
-//             </div>
-            
-        
-//             <!-- Khối hiển thị comment -->
-//             <div class="comments-section">
-//                 <div class="comment-input">
-//                     <div class="avatar-container">
-//                         <img src="/userImg/${currUser.profilePicture}" alt="Avatar">
-//                     </div>
-//                     <input type="text" class="comment-text" placeholder="Viết bình luận...">
-//                     <button class="send-comment-button"><i class="fa-solid fa-paper-plane"></i></button>
-//                 </div>
-//                 <div class="comments">
-//                     <!-- Các comment sẽ được hiển thị ở đây -->
-//                 </div>
-//             </div>
-//         </div>
-    
-//         `
-//         // console.log("postContent", postContent)
-
-//     }
-//     postContentContainer.innerHTML += postContent;
-
-// }
 
 function getQueryParam(param) {
     var urlParams = new URLSearchParams(window.location.search);

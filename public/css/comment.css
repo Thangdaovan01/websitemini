@@ -218,11 +218,11 @@
     color: var(--textColor);
 }
 
-.people-like-comment {
+.people-like-comment, .people-like-reply-comment {
     display: none;
     position: absolute;
     color: #fff;
-    width: 100px;
+    /* width: 100px; */
     background-color: var(--textColor);
     align-items: center;
     border: none;
@@ -242,7 +242,13 @@
     border: none;
 }
 
-.people-like-comment.active {
+.people-like-comment.active, .people-like-reply-comment.active {
+    /* display: block; */
+    display: inline-block;
+}
+
+
+.people-like-reply-comment.active {
     display: block;
 }
 

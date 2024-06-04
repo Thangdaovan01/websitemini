@@ -410,6 +410,7 @@
 
 
 .people-like.active {
+    /* display: inline-block; */
     display: block;
 }
 

@@ -4,7 +4,6 @@ const { config } = require('../config/config.js');
 const mongoose = require('mongoose');
 
 const User = require('../models/User')
-const Excel = require('../models/Excel')
 const Post = require('../models/Post')
 const Like = require('../models/Like')
 const Comment = require('../models/Comment')
