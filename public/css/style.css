@@ -84,7 +84,7 @@ body {
 }
 
 .active {
-  font-weight: bold !important;
+  /* font-weight: bold ; */
 }
 
 .create-row-container {

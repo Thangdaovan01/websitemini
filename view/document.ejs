@@ -43,8 +43,8 @@
         
         <div class="sidebar">
             <div class="profile">
-                <img src="https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg" alt="Avatar">
-                <span class="username">Tên người dùng</span>
+                <img class="user-page" src="https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg" alt="Avatar">
+                <span class="username user-page">Tên người dùng</span>
                 <span class="uploadCount">127 Tải lên</span>
                 <button class="create-new-document-btn"> <i class="fa-solid fa-arrow-up-from-bracket"></i> Đăng tài liệu</button>
             </div>
@@ -57,7 +57,7 @@
                     <li>Trường C</li>
                 </ul>
                 <span><i class="fa-regular fa-heart"></i> Tài liệu yêu thích</span>
-                <span><i class="fa-regular fa-file"></i> Tài liệu của tôi</span>
+                <span class="my-document-upload"><i class="fa-regular fa-file"></i> Tài liệu của tôi</span>
                 <span><i class="fa-regular fa-rectangle-list"></i> Chương trình đào tạo</span>
             </div>
         </div>
@@ -80,126 +80,19 @@
             <div class="section maybe-interested-section">
                 <h3>Có thể bạn quan tâm <button class="view-all maybe-interested-view-all">Xem tất cả <i class="fa-solid fa-angles-right"></i></button></h3>
                 <div class="section1 maybe-interested-container items">
-                    <div class="item">
-                        <img src="/documentsImg/1717122677575-document.png" alt="Interest 1">
-                        <div class="title">Đề kiểm tra THCS Trần Huy Liệu</div>
-                        <div class="description">Trong chuyến bay về nước sau khi vô địch MSI, bạn muốn nghe Chovy hay Canyon hát?</div>
-                        <div class="meta">
-                            <span class="likes">123 Likes</span>
-                            <span class="date">01/01/2024</span>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <img src="https://cdn.tgdd.vn/2020/05/campaign/cach-chuyen-hinh-anh-thanh-van-ban-bang-google-tai-lieu-thumb-640x360.jpg" alt="Interest 2">
-                        <div class="title">Đề kiểm tra Nguyễn Tất Thành năm 2023</div>
-                        <div class="description">Lần đầu anh bị bóng đè là vào năm 2008, lúc đó anh đang ở kí túc xá. Anh để cửa sổ mở rồi ngủ trưa thì bỗng nghe thấy giọng phụ nữ ở bên ngoài nên chắc mẩm chuyến này mình gặp ma rồi. Donghae với Hankyung kể với anh là họ ở tuốt phòng bên kia mà vẫn nghe thấy tiếng anh chửi bên này. Hai người họ mới chạy đến phòng anh xem anh có bị gì không thì thấy anh đang </div>
-                        <div class="meta">
-                            <span class="likes">234 Likes</span>
-                            <span class="date">02/02/2024</span>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <img src="https://png.pngtree.com/png-vector/20190701/ourlarge/pngtree-document-icon-for-your-project-png-image_1533118.jpg" alt="Interest 3">
-                        <div class="title">ĐỀ KIỂM TRA THCS Lê Văn Thiêm</div>
-                        <div class="description">Dạo này skill hội hoạ của sếp lên trình quá rồi nên chúng ta cùng throwback lại những bức hoạ trừu tượng nức tiếng một thời của sếp nhé </div>
-                        <div class="meta">
-                            <span class="likes">345 Likes</span>
-                            <span class="date">03/03/2024</span>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <img src="https://nology.vn/wp-content/uploads/2024/03/cach-tim-kiem-tai-lieu-nuoc-ngoai-1-1.jpg" alt="Interest 4">
-                        <div class="title">Đề kiểm tra THCS Nguyễn Hữu Tiến</div>
-                        <div class="description">Đừng bao giờ có suy nghĩ dựa vào người khác để sống ... Chẳng có gì bền bỉ bằng sự cố gắng của chính bản thân mình</div>
-                        <div class="meta">
-                            <span class="likes">456 Likes</span>
-                            <span class="date">04/04/2024</span>
-                        </div>
-                    </div>
+                   <!-- Hiển thị 4 bài đăng -->
                 </div>
-                
-                
             </div>
             <div class="section recently-view-section">
                 <h3>Đã xem gần đây <button class="view-all recently-view-view-all">Xem tất cả <i class="fa-solid fa-angles-right"></i></button></h3>
                 <div class="items">
-                    <div class="item">
-                        <img src="https://nology.vn/wp-content/uploads/2024/03/cach-tim-kiem-tai-lieu-nuoc-ngoai-1-1.jpg" alt="Recent 1">
-                        <div class="title">Đề kiểm tra THCS Nguyễn Hữu Tiến</div>
-                        <div class="description">Dạo này skill hội hoạ của sếp lên trình quá rồi nên chúng ta cùng throwback lại những bức hoạ trừu tượng nức tiếng một thời của sếp nhé </div>
-                        <div class="meta">
-                            <span class="likes">123 Likes</span>
-                            <span class="date">01/01/2024</span>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <img src="https://png.pngtree.com/png-vector/20190701/ourlarge/pngtree-document-icon-for-your-project-png-image_1533118.jpg" alt="Recent 2">
-                        <div class="title">Đề kiểm tra THCS Thị Trấn Quế</div>
-                        <div class="description">Lần đầu anh bị bóng đè là vào năm 2008, lúc đó anh đang ở kí túc xá. Anh để cửa sổ mở rồi ngủ trưa thì bỗng nghe thấy giọng phụ nữ ở bên ngoài nên chắc mẩm chuyến này mình gặp ma rồi. Donghae với Hankyung kể với anh là họ ở tuốt phòng bên kia mà vẫn nghe thấy tiếng anh chửi bên này. Hai người họ mới chạy đến phòng anh xem anh có bị gì không thì thấy anh đang </div>
-                        <div class="meta">
-                            <span class="likes">234 Likes</span>
-                            <span class="date">02/02/2024</span>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <img src="https://cdn.tgdd.vn/2020/05/campaign/cach-chuyen-hinh-anh-thanh-van-ban-bang-google-tai-lieu-thumb-640x360.jpg" alt="Recent 3">
-                        <div class="title">Đề kiểm tra THCS Thanh Xuân</div>
-                        <div class="description">Đừng bao giờ có suy nghĩ dựa vào người khác để sống ... Chẳng có gì bền bỉ bằng sự cố gắng của chính bản thân mình</div>
-                        <div class="meta">
-                            <span class="likes">345 Likes</span>
-                            <span class="date">03/03/2024</span>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <img src="https://www.tremplin-numerique.org/wp-content/uploads/2021/05/Comment-utiliser-la-fonctionnalite-Explorer-de-Google-Docs-pour-la.jpg" alt="Recent 4">
-                        <div class="title">Đề kiểm tra THCS Cầu Giấy</div>
-                        <div class="description">Trong chuyến bay về nước sau khi vô địch MSI, bạn muốn nghe Chovy hay Canyon hát?</div>
-                        <div class="meta">
-                            <span class="likes">456 Likes</span>
-                            <span class="date">04/04/2024</span>
-                        </div>
-                    </div>
+                   <!-- Hiển thị 4 bài đăng -->
                 </div>
             </div>
-            <div class="section recently-post-section">
-                <h3>Đã đăng gần đây <button class="view-all recently-post-view-all">Xem tất cả <i class="fa-solid fa-angles-right"></i></button></h3>
+            <div class="section recently-document-section">
+                <h3>Đã đăng gần đây <button class="view-all recently-document-view-all">Xem tất cả <i class="fa-solid fa-angles-right"></i></button></h3>
                 <div class="items">
-                    <!-- <div class="item">
-                        <img src="https://nology.vn/wp-content/uploads/2024/03/cach-tim-kiem-tai-lieu-nuoc-ngoai-1-1.jpg" alt="Recent 1">
-                        <div class="title">Đề kiểm tra THCS Nguyễn Hữu Tiến</div>
-                        <div class="description">Dạo này skill hội hoạ của sếp lên trình quá rồi nên chúng ta cùng throwback lại những bức hoạ trừu tượng nức tiếng một thời của sếp nhé </div>
-                        <div class="meta">
-                            <span class="likes">123 Likes</span>
-                            <span class="date">01/01/2024</span>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <img src="https://png.pngtree.com/png-vector/20190701/ourlarge/pngtree-document-icon-for-your-project-png-image_1533118.jpg" alt="Recent 2">
-                        <div class="title">Đề kiểm tra THCS Thị Trấn Quế</div>
-                        <div class="description">Lần đầu anh bị bóng đè là vào năm 2008, lúc đó anh đang ở kí túc xá. Anh để cửa sổ mở rồi ngủ trưa thì bỗng nghe thấy giọng phụ nữ ở bên ngoài nên chắc mẩm chuyến này mình gặp ma rồi. Donghae với Hankyung kể với anh là họ ở tuốt phòng bên kia mà vẫn nghe thấy tiếng anh chửi bên này. Hai người họ mới chạy đến phòng anh xem anh có bị gì không thì thấy anh đang </div>
-                        <div class="meta">
-                            <span class="likes">234 Likes</span>
-                            <span class="date">02/02/2024</span>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <img src="https://cdn.tgdd.vn/2020/05/campaign/cach-chuyen-hinh-anh-thanh-van-ban-bang-google-tai-lieu-thumb-640x360.jpg" alt="Recent 3">
-                        <div class="title">Đề kiểm tra THCS Thanh Xuân</div>
-                        <div class="description">Đừng bao giờ có suy nghĩ dựa vào người khác để sống ... Chẳng có gì bền bỉ bằng sự cố gắng của chính bản thân mình</div>
-                        <div class="meta">
-                            <span class="likes">345 Likes</span>
-                            <span class="date">03/03/2024</span>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <img src="https://www.tremplin-numerique.org/wp-content/uploads/2021/05/Comment-utiliser-la-fonctionnalite-Explorer-de-Google-Docs-pour-la.jpg" alt="Recent 4">
-                        <div class="title">Đề kiểm tra THCS Cầu Giấy</div>
-                        <div class="description">Trong chuyến bay về nước sau khi vô địch MSI, bạn muốn nghe Chovy hay Canyon hát?</div>
-                        <div class="meta">
-                            <span class="likes">456 Likes</span>
-                            <span class="date">04/04/2024</span>
-                        </div>
-                    </div> -->
+                   <!-- Hiển thị 4 bài đăng -->
                 </div>
             </div>
         </div>

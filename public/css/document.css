@@ -100,6 +100,10 @@ main {
     width: 70px;
     height: 70px;
     object-fit: cover;
+    cursor: pointer;
+}
+.sidebar .profile .username {
+    cursor: pointer;
 }
 .sidebar .profile span:nth-of-type(1) {
     margin-top: 10px;

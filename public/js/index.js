@@ -533,8 +533,13 @@ $(document).ready(function() {
         event.preventDefault();
         const postId = $(this).closest('.interaction-buttons').data('post-id');
         const likeArrClick = likesArr;
-        const likesPost = likeArrClick.filter(item => item.likePostId == postId);
-
+        const likesPost = likeArrClick.filter(item => item.likePostId == postId); 
+        // var documentId = $(this).closest('.post-content-container1.document-post-content').data('document-id');
+        // var documentId = $(this).closest('.post-content.document-post-content').data('document-id');
+        // console.log("documentId",documentId)
+        // Tìm phần tử cha gần nhất có class 'post-content document-post-content'
+        var documentId = $(this).closest('.post-content-container1').data('document-id');
+        
         let totalLikes = likesPost.length;
         $(this).toggleClass('liked');
         const likeCountElement = document.querySelector(`.interaction-buttons-${postId} .like-count span`);
@@ -546,6 +551,7 @@ $(document).ready(function() {
             const createLike1 = {
                 userId: user._id,
                 likePostId: postId,
+                documentId: documentId
             }
             createLike(createLike1);
         } else {
@@ -555,6 +561,7 @@ $(document).ready(function() {
             const deleteLike1 = {
                 userId: user._id,
                 likePostId: postId,
+                documentId: documentId
             }
             deleteLike(deleteLike1);
         }
@@ -1476,7 +1483,7 @@ async function showPost(postsArr, className) {
         }
 
         postContent += `
-        <div class="post-content-container1 post-content-container1-${postsArrId}" id="post-${ postsArrId }" data-post-id="${postsArrId}">
+        <div class="post-content-container1 post-content-container1-${postsArrId}" id="post-${ postsArrId }" data-post-id="${postsArrId}" data-document-id=${postsArr[i].documentId}>
             <!-- Khối thông tin người đăng -->
             <div class="author-info">
                 <div class="avatar-container image-container user-page" data-value="${ postsArr[i].createdBy }">

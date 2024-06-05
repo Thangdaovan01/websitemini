@@ -59,3 +59,7 @@ iframe{
 .detail-info p strong {
     font-weight: bold; /* Chữ đậm */
 }
+
+.detail-info .author-page, .subject-page, .school-page {
+    cursor: pointer;
+}

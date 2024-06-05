@@ -183,6 +183,17 @@ const getRow = async (req, res) => {
     }
 }
 
+
+const getPosts = async (req, res) => {
+    try {
+        const posts = await Post.find({  });
+        return res.status(200).json({posts : posts });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
 const createPost = async (req, res) => {
     try {
         const newPost = req.body;
@@ -328,6 +339,19 @@ const updateUserProfile = async (req, res) => {
         
         return res.status(200).json({ message: 'Cập nhật thành công.' });
 
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+
+
+const getLikes = async (req, res) => {
+    try {
+        const likes = await Like.find({  });
+        return res.status(200).json({likes : likes });
+        
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Lỗi từ phía server.' });
@@ -870,7 +894,7 @@ const getDocuments = async (req, res) => {
                     size: 1000
                 }
             });
-            const newArray = body.hits.hits.map(({ _id, _source: { title, description, school , subject, document, documentImage, createdAt, createdBy } }) => ({ _id, title, description, school , subject, document, documentImage, createdAt, createdBy }));
+            const newArray = body.hits.hits.map(({ _id, _source: { title, description, school , subject, document, documentImage, createdAt, createdBy, viewValue, viewCount } }) => ({ _id, title, description, school , subject, document, documentImage, createdAt, createdBy, viewValue, viewCount }));
             return res.status(200).json({ documents: newArray });
 
         } else {
@@ -898,8 +922,8 @@ const getDocument= async (req, res) => {
             // console.log("findDocument",findDocument);
             // const newArray = body.hits.hits.map(({ _id, _source: { title, description, school , subject, document, documentImage, createdAt, createdBy } }) => ({ _id, title, description, school , subject, document, documentImage, createdAt, createdBy }));
 
-            const { _id, _source: { title, description, school , subject, document, documentImage, createdAt, createdBy } } = findDocument;
-            const resultObject = { _id, title, description, school , subject, document, documentImage, createdAt, createdBy };
+            const { _id, _source: { title, description, school , subject, document, documentImage, createdAt, createdBy, viewValue, viewCount } } = findDocument;
+            const resultObject = { _id, title, description, school , subject, document, documentImage, createdAt, createdBy, viewValue, viewCount };
             return res.status(200).json({ document: resultObject });
         } else {
             return res.status(400).json({ message: 'Không có tài liệu nào' })
@@ -932,9 +956,9 @@ const uploadDocumentImageFile =  async (req, res) => {
 module.exports = {
     login, register, getUser, getUsers,
     getStyle, 
-    deletePost, createPost, updatePost, getRow,
+    deletePost, createPost, updatePost, getRow, getPosts,
     updateUserProfile,
-    createLike, deleteLike,
+    createLike, deleteLike, getLikes,
     createComment, updateComment, deleteComment,
     createFriend, updateFriend, deleteFriend,
     uploadPostImg, uploadUserImg,

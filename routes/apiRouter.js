@@ -12,6 +12,8 @@ apiRouter.post('/login', apiController.login);
 apiRouter.post('/register', apiController.register);
 
 apiRouter.get('/row', apiController.getRow);//chưa dùng 
+
+apiRouter.get('/posts', apiController.getPosts);
 apiRouter.post('/post', apiController.createPost);
 apiRouter.put('/post', apiController.updatePost);
 apiRouter.delete('/post', apiController.deletePost);
@@ -19,6 +21,7 @@ apiRouter.delete('/post', apiController.deletePost);
 
 apiRouter.put('/userprofile', apiController.updateUserProfile);
 
+apiRouter.get('/likes', apiController.getLikes);
 apiRouter.post('/like', apiController.createLike);
 apiRouter.delete('/like', apiController.deleteLike);
 
