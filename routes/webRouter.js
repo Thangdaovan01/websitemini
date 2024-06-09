@@ -8,5 +8,6 @@ webRouter.get('/login-register', webController.getLoginPage);
 webRouter.get('/user', webController.getUserPage);
 webRouter.get('/document', webController.getDocument);
 webRouter.get('/document/:id', webController.getDocumentFilename);
+webRouter.get('/message', webController.getMessage);
 
 module.exports = webRouter; 

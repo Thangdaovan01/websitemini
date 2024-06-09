@@ -55,8 +55,18 @@ const getDocumentFilename = async (req, res) => {
     }
 }
 
+const getMessage = async (req, res) => {
+    try {
+        return res.status(200).render('messages');
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json('Server error');
+    }
+}
+
 module.exports = {
     getLoginPage, getHomepage,
     getAdminPage, getUserPage,
-    getDocument, getDocumentFilename
+    getDocument, getDocumentFilename,
+    getMessage
 }

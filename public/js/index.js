@@ -48,6 +48,11 @@ $(document).ready(function() {
 })
 
 $(document).ready(function() {
+    $(document).on('click', '.messages-btn', function(event) { 
+        event.stopPropagation();
+        window.location.href = 'http://localhost:3000/message';
+    });
+
     //Chưa làm
     $('#search_form').submit(function(event){
         event.preventDefault();
@@ -104,6 +109,108 @@ $(document).ready(function() {
         $('.window').empty().append(newPost);
         $('.window').show();
     });
+
+    $(document).on('click', '.create-file-btn', function(event) { 
+        event.stopPropagation();
+        
+        $("body").children().not(".window, .notification").addClass("blur");
+
+        var newPost = ``
+
+        newPost += `
+            
+        <div class="form-container">
+            <form id="create_new_document_form" enctype="multipart/form-data">
+                <div class="form-section">
+                    <div class="box small-box">
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input type="text" id="title" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" rows="4" required></textarea>
+                        </div>
+                    </div>
+                    <div class="box small-box">
+                        <div class="form-group">
+                            <label for="document">Upload Document</label>
+                            <input type="file" id="document" name="document" accept=".pdf,.doc,.docx" required><br>
+                        </div>
+                        <div class="form-group">
+                            <label for="document-image">Upload Document Image</label>
+                            <input type="file" id="document-image" name="document-image" accept=".png,.jpg,.jpeg" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="school">Select School</label>
+                            <select id="school" name="school">
+                                <option value="Trường Cơ khí">Trường Cơ khí</option>
+                                <option value="Trường Công nghệ Thông tin và Truyền thông">Trường Công nghệ Thông tin và Truyền thông</option>
+                                <option value="Trường Điện - Điện tử">Trường Điện - Điện tử</option>
+                                <option value="Trường Hoá và Khoa học sự sống">Trường Hoá và Khoa học sự sống</option>
+                                <option value="Trường Vật liệu">Trường Vật liệu</option>
+                                <option value="Khoa Toán - Tin">Khoa Toán - Tin</option>
+                                <option value="Khoa Vật lý Kỹ thuật">Khoa Vật lý Kỹ thuật</option>
+                                <option value="Khoa Ngoại ngữ">Khoa Ngoại ngữ</option>
+                                <option value="Khoa Khoa học và Công nghệ Giáo dục">Khoa Khoa học và Công nghệ Giáo dục</option>
+                                <option value="Khoa Giáo dục Quốc phòng & An ninh">Khoa Giáo dục Quốc phòng & An ninh</option>
+                                <option value="Khoa Lý luận Chính trị">Khoa Lý luận Chính trị</option>
+                                <option value="Khoa Giáo dục Thể chất">Khoa Giáo dục Thể chất</option>
+                                <option value="Viện Kinh tế và Quản lý">Viện Kinh tế và Quản lý</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="subject">Subject Name</label>
+                            <input type="text" id="subject" name="subject">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <button type="button" class="btn cancel create-new-document-cancel-btn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    <button type="submit" class="btn submit create-new-document-submit-btn"><i class="fa-solid fa-arrow-up-from-bracket"></i> Upload Document</button>
+                </div>
+            </form>
+        </div>
+
+        `
+
+        $('.window').empty().append(newPost);
+        $('.window').show();
+    });
+
+    $(document).on('click', '.create-new-document-cancel-btn', function(event) {
+        event.stopPropagation();
+        $('.window').hide();
+        $("body").children().removeClass("blur");
+    })
+
+    $(document).on('click', '.create-new-document-submit-btn', function(event) {
+        event.stopPropagation();
+        console.log("create-new-document-submit-btn");
+
+        var title = document.getElementById('title').value;
+        var description = document.getElementById('description').value;
+        var school = document.getElementById('school').value;
+        var subject = document.getElementById('subject').value;
+        
+        var newDocument = {
+            document: documentFileName,
+            documentImage: imageFileName,
+            title: title,
+            description: description,
+            school: school,
+            subject: subject,
+        }
+
+        console.log("newDocument", newDocument);
+
+        console.log("create-new-document-submit-btn 22222");
+
+        if (!confirm('Đăng tài liệu mới')) {
+            return
+        }
+        createNewDocument(newDocument);
+    })
 
     $(document).on('click', '.post-button', async function(event) {
         event.stopPropagation();
@@ -1017,6 +1124,38 @@ $(document).ready(function() {
 
 });
 
+function createNewDocument(newDocument){
+    console.log("createNewDocument",newDocument);
+    fetch('http://localhost:3000/api/document', {
+        method: "POST",
+        headers: {
+            "Content-Type" : "application/json",
+            "Authorize" : token
+        },
+        body: JSON.stringify({newDocument:newDocument})
+    })
+    .then(response => {
+        return response.json().then(data => {
+            if (!response.ok) {
+                showNotification(data.message);
+                throw new Error('Network response was not ok');
+            }
+            return data;
+        });
+    })
+    .then(result => {
+        showNotification(result.message);
+        console.log("createNewDocument",result);
+        // $('#document_display').html(`<h2>Uploaded Document</h2><p>Title: ${result.title}</p><p>Description: ${result.description}</p><p>Field of Study: ${result.field}</p>`);
+
+        setTimeout(function() {
+            window.location.href = 'http://localhost:3000/document';
+        }, 500);
+    })
+    .catch(error => {
+        console.error('There was a problem with your fetch operation:', error);
+    });
+}
 
 function updateDocument(documentId) {
     console.log("UPDATE");

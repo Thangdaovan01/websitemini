@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/post.css">
+    <!-- <link rel="stylesheet" href="css/document.css"> -->
+    <!-- <link rel="stylesheet" href="css/comment.css"> -->
+    <link rel="stylesheet" href="css/message.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body> 
+    <div class="header-container">
+        
+        <div class="logo">
+            <a class="" href="/">WEBSITE</a>
+        </div>
+        <div class="nav-container">
+            <a class="" id="priceList" href="/document">Tài liệu</a>
+        </div>
+        <div class="messages-container">
+            <button id="messages" title="Tin nhắn" class="messages-btn"><i class="fa-solid fa-comment-dots"></i></i></button>
+        </div>
+        <div class="search-container">
+            <form class="search-form" id="search_form" >
+                <input type="text" name="searchText" class="searchText">
+                <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
+        </div>
+        <div class="logout-container">
+            <button id="logout" title="Đăng xuất" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i></button>
+        </div>
+
+    </div>
+
+    <main>
+
+        <div class="chat-container">
+            <!-- Sidebar -->
+            <div class="chatSidebar">
+              <div class="search-box">
+                <input type="text" placeholder="Search..." />
+                <button><i class="fa-solid fa-magnifying-glass"></i></button>
+              </div>
+              <div class="friend-list">
+                <!-- Sample user friends -->
+                <div class="userFriend">
+                  <div class="avatar sidebar-avatar offline">
+                    <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                  </div>
+                  <span class="username">User 1</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 2</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar offline">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 2</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 3</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 4</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 5</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 2</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 2</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 2</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 2</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 2</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 2</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 2</span>
+                </div>
+                <div class="userFriend">
+                    <div class="avatar sidebar-avatar online">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <span class="username">User 2</span>
+                </div>
+                
+                <!-- Repeat userFriend block for multiple friends -->
+                <!-- ... -->
+              </div>
+            </div>
+            <!-- Messages Container -->
+            <div class="messagesContain">
+              <div class="message-header">
+                <div class="avatar message-header-avatar">
+                  <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                </div>
+                <span class="username">Chat with User</span>
+              </div>
+              <div class="messagesText">
+                <!-- Sample messages -->
+                <div class="message message-sent">
+                  <div class="message-bubble">
+                    <p>Hi there!</p>
+                    <time>2023-06-09 10:00 AM</time>
+                  </div>
+                  <div class="avatar message-avatar">
+                    <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                  </div>
+                </div>
+
+                <div class="message message-received">
+                  <div class="avatar message-avatar">
+                    <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                  </div>
+                  <div class="message-bubble">
+                    <p>Hello! How are you?</p>
+                    <time>2023-06-09 10:02 AM</time>
+                  </div>
+                </div>
+                
+                <div class="message message-sent">
+                    <div class="message-bubble">
+                      <p>This begins one morning with my friend in San Diego telling me about an earthquake they just had.</p>
+                      <time>2023-06-09 10:00 AM</time>
+                    </div>
+                    <div class="avatar message-avatar">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                  </div>
+
+                  <div class="message message-sent">
+                    <div class="message-bubble">
+                      <p>Elsewhere, Biff has plans to take down the entire Caspian family with his secret about how Roger Caspian used to be...REGINA Caspian!</p>
+                      <time>2023-06-09 10:00 AM</time>
+                    </div>
+                    <div class="avatar message-avatar">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                  </div>
+
+                  <div class="message message-received">
+                    <div class="avatar message-avatar">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
+                    </div>
+                    <div class="message-bubble">
+                      <p>It’s more like “this is an earthquake. Check the Internet. Yup. Earthquake. This is the size. This is the epicenter. Check social media. Make sure the East Coast knows I’m alive. Okay, try and go back to sleep.”</p>
+                      <time>2023-06-09 10:02 AM</time>
+                    </div>
+                  </div>
+                <!-- Repeat message block for more messages -->
+                <!-- ... -->
+              </div>
+              <div class="message-input">
+                <input type="text" placeholder="Type a message..." />
+                <button>Send</button>
+              </div>
+            </div>
+          </div>
+    </main>  
+    <div class="window"></div>   
+    <div class="description"></div>
+    <div id="notification" class="notification">
+        <span id="notificationText"></span>
+    </div>  
+</body>
+<script src="js/index.js"></script>
+<script src="js/logout.js"></script>
+</html>
+
+
+
+<!-- <div class="chat chat-start">
+    <div class="chat-image avatar">
+      <div class="w-10 rounded-full">
+        <img alt="Tailwind CSS chat bubble component" src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+      </div>
+    </div>
+    <div class="chat-bubble">You were the Chosen One!</div>
+    <div class="chat-footer opacity-50">
+        <time class="text-xs">12:45</time>
+    </div>
+  </div>
+  <div class="chat chat-end">
+    <div class="chat-image avatar">
+      <div class="w-10 rounded-full">
+        <img alt="Tailwind CSS chat bubble component" src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+      </div>
+    </div>
+    <div class="chat-header">
+      Anakin
+      
+    </div>
+    <div class="chat-bubble">I hate you!</div>
+    <div class="chat-footer opacity-50">
+        <time class="text-xs">12:46</time>
+    </div>
+  </div> -->
