@@ -29,6 +29,11 @@ $(document).ready(function() {
     .then(result => {
         currUser = result.user;
         usersArr = result.users;
+        const headerContainer = document.querySelector('.header-container');
+            // Thêm giá trị vào thuộc tính data-user-id
+        if (headerContainer) {
+            headerContainer.dataset.userId = currUser._id;
+        }
         // console.log("USER",result);
         // showUsers(usersArr);
     })

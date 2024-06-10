@@ -26,7 +26,8 @@
             <a class="" id="priceList" href="/document">Tài liệu</a>
         </div>
         <div class="messages-container">
-            <button id="messages" title="Tin nhắn" class="messages-btn"><i class="fa-solid fa-comment-dots"></i></i></button>
+            <!-- <button id="messages" title="Tin nhắn" class="messages-btn"><i class="fa-solid fa-comment-dots"></i></i></button> -->
+            <a class="messages-btn" id="messages" href="/message"><i class="fa-solid fa-comment-dots"></i></a>
         </div>
         <div class="search-document-container">
             <form class="search-document-form" id="search_document_form" >
@@ -39,7 +40,7 @@
         </div>
 
     </div>
-    <main> 
+    <main>  
         <div class="sidebar">
             <div class="profile">
                 <img class="user-page" src="https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg" alt="Avatar">
@@ -56,7 +57,7 @@
                     <li>Trường C</li>
                 </ul>
                 <span><i class="fa-regular fa-heart"></i> Tài liệu yêu thích</span>
-                <span><i class="fa-regular fa-file"></i> Tài liệu của tôi</span>
+                <span class="my-document-upload"><i class="fa-regular fa-file"></i> Tài liệu của tôi</span>
                 <span><i class="fa-regular fa-rectangle-list"></i> Chương trình đào tạo</span>
             </div>
         </div>
@@ -69,10 +70,11 @@
         </div> 
         <div class="document-info-container">
         </div>
-        <div class="main-content"></div>
+        <div class="main-content" style="display: none;"></div>
     </main>
 </body>
 <script src="/js/documentfile.js"></script>
+<script src="/js/document.js"></script>
 <script src="/js/logout.js"></script>
 </html>
 

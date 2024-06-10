@@ -51,9 +51,9 @@
                 <input type="text" placeholder="Search..." />
                 <button><i class="fa-solid fa-magnifying-glass"></i></button>
               </div>
-              <div class="friend-list">
+              <div class="friend-list" id="friend-list">
                 <!-- Sample user friends -->
-                <div class="userFriend">
+                <!-- <div class="userFriend">
                   <div class="avatar sidebar-avatar offline">
                     <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
                   </div>
@@ -136,21 +136,24 @@
                       <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
                     </div>
                     <span class="username">User 2</span>
-                </div>
+                </div> -->
                 
                 <!-- Repeat userFriend block for multiple friends -->
                 <!-- ... -->
               </div>
             </div>
             <!-- Messages Container -->
-            <div class="messagesContain">
+            <div class="messagesContain1" id="messagesContain1">
+            </div>
+            <div class="messagesContain" id="messagesContain">
+              
               <div class="message-header">
                 <div class="avatar message-header-avatar">
                   <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="User Avatar">
                 </div>
-                <span class="username">Chat with User</span>
+                <span class="message-header-username">Chat with User</span>
               </div>
-              <div class="messagesText">
+              <div class="messagesText" id="messagesText">
                 <!-- Sample messages -->
                 <div class="message message-sent">
                   <div class="message-bubble">
@@ -205,10 +208,12 @@
                 <!-- ... -->
               </div>
               <div class="message-input">
-                <input type="text" placeholder="Type a message..." />
-                <button>Send</button>
+                <input type="text" id="message-input" placeholder="Type a message..." />
+                <button class="send-message-btn"><i class="fa-solid fa-paper-plane"></i></button>
               </div>
             </div>
+
+            
           </div>
     </main>  
     <div class="window"></div>   
@@ -217,35 +222,8 @@
         <span id="notificationText"></span>
     </div>  
 </body>
-<script src="js/index.js"></script>
+<script src="js/message.js"></script>
 <script src="js/logout.js"></script>
 </html>
 
 
-
-<!-- <div class="chat chat-start">
-    <div class="chat-image avatar">
-      <div class="w-10 rounded-full">
-        <img alt="Tailwind CSS chat bubble component" src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-      </div>
-    </div>
-    <div class="chat-bubble">You were the Chosen One!</div>
-    <div class="chat-footer opacity-50">
-        <time class="text-xs">12:45</time>
-    </div>
-  </div>
-  <div class="chat chat-end">
-    <div class="chat-image avatar">
-      <div class="w-10 rounded-full">
-        <img alt="Tailwind CSS chat bubble component" src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-      </div>
-    </div>
-    <div class="chat-header">
-      Anakin
-      
-    </div>
-    <div class="chat-bubble">I hate you!</div>
-    <div class="chat-footer opacity-50">
-        <time class="text-xs">12:46</time>
-    </div>
-  </div> -->

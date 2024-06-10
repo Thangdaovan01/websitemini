@@ -29,6 +29,8 @@ const Post = require('../models/Post')
 const Like = require('../models/Like')
 const Comment = require('../models/Comment')
 const Friend = require('../models/Friend')
+const Message = require('../models/Message')
+const Conversation = require('../models/Conversation')
 
 const style = [];
 const usersArr = [];
@@ -55,11 +57,36 @@ const login = async (req, res) => {
                 return res.status(400).json({ message: 'Mật khẩu không đúng' });
             } else {
                 // Mật khẩu khớp, tiếp tục xử lý đăng nhập
+                // chuyển trạgn thái
+                existingUser.active = true;
+                await User.updateOne({ _id: existingUser._id }, existingUser);
                 const token = generateToken(account);
 
                 return res.status(200).json({ message: 'Đăng nhập thành công', token: token, role: existingUser.role});
             }
         }
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+const logout = async (req, res) => {
+    try {
+        const userId = req.body.userId;
+        const existingUser = await User.findOne({ _id: userId });
+        // console.log("existingUser",existingUser);
+
+        if (!existingUser) {
+            return res.status(400).json({ message: 'Username không tồn tại trong hệ thống' }); // user_name đã tồn tại
+        } else {
+                // chuyển trạgn thái
+                existingUser.active = false;
+                await User.updateOne({ _id: userId }, existingUser);
+                return res.status(200).json({ message: 'Đăng xuất thành công'});
+            }
+        
 
     } catch (error) {
         console.error(error);
@@ -538,6 +565,17 @@ const deleteComment = async (req, res) => {
     }
 }
 
+const getFriends = async (req, res) => {
+    try {
+        const friends = await Friend.find({  });
+        return res.status(200).json({friends : friends });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json({message: 'Server error'});
+    }
+}
+
 const createFriend = async (req, res) => {
     try {
         const newFriend = req.body;
@@ -952,16 +990,156 @@ const uploadDocumentImageFile =  async (req, res) => {
     }
 };
 
+//chưa dùng
+const getMessages = async (req, res) => {
+    try {
+        const messages = await Message.find({  });
+        return res.status(200).json({messages : messages });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+const getMessage = async (req, res) => {
+    try {
+        // const messages = await Message.find({  });
+        const senderId = req.header('senderId');
+        const receiverId = req.header('receiverId');
+
+        const conversation = await Conversation.findOne({
+			participants: { $all: [senderId, receiverId] },
+		}).populate("messages"); // NOT REFERENCE BUT ACTUAL MESSAGES
+        // console.log("conversation",conversation);
+
+		if (!conversation) return res.status(200).json([]);
+
+		const messages = conversation.messages;
+        // console.log("messages",messages);
+
+        return res.status(200).json({messages : messages });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+const createMessage = async (req, res) => {
+    console.log("createMessage");
+
+    try {
+        const newMess = req.body.newMess;
+        const token = req.header('Authorize');
+        console.log("newMess",newMess);
+        const senderId = newMess.senderId;
+        const receiverId = newMess.receiverId;
+        const messageText = newMess.messageText;
+        
+        if (!token) {
+            return res.status(401).json({ message: 'Không xác thực được danh tính' })
+        }
+
+        let conversation = await Conversation.findOne({
+			participants: { $all: [senderId, receiverId] },
+		});
+
+		if (!conversation) {
+			conversation = await Conversation.create({
+				participants: [senderId, receiverId],
+			});
+		}
+
+        const newMessage = new Message({
+			senderId,
+			receiverId,
+			messageText,
+		});
+
+		if (newMessage) {
+			conversation.messages.push(newMessage._id);
+		}
+
+        await Promise.all([conversation.save(), newMessage.save()]);
+        return res.status(200).json({messages : newMessage });
+        
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+//chưa dùng
+const deleteMessage = async (req, res) => {
+    try {
+        // const idRow = req.body.idRow;
+        const deleteLike = req.body;
+        const likeArr = await Like.find({  });
+        const userIdToCheck = deleteLike.userId;
+        const likePostIdToCheck = deleteLike.likePostId;
+        const delLike = likeArr.filter(item => item.userId == userIdToCheck && item.likePostId == likePostIdToCheck);
+        const likeArr1 = likeArr.filter(item => !(item.userId == userIdToCheck && item.likePostId == likePostIdToCheck));
+
+        console.log("delLike._id",delLike[0]._id);
+        const delLikeId = delLike[0]._id;
+        if (deleteLike.userId == '' && deleteLike.likePostId == 0) {
+            return res.status(400).json({ message: 'Thông tin về dữ liệu bạn muốn xóa không được gửi về server.'});
+        }
+        if(delLike){
+            await Like.deleteOne({ _id: delLikeId });
+            // const likeArr1 = await Like.find({  });
+            return res.status(200).json({ likeArr1: likeArr1 });
+        }
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi từ phía server' });
+    }
+}
+//chưa dùng
+const getConversations = async (req, res) => {
+    try {
+        const messages = await Message.find({  });
+        return res.status(200).json({messages : messages });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+//chưa dùng
+const createConversation = async (req, res) => {
+    try {
+        const createMessage = req.body;
+        const token = req.header('Authorize');
+        console.log("createMessage",createMessage);
+        
+        if (!token) {
+            return res.status(401).json({ message: 'Không xác thực được danh tính' })
+        }
+
+        
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+
 
 module.exports = {
-    login, register, getUser, getUsers,
+    login, register, logout, getUser, getUsers,
     getStyle, 
     deletePost, createPost, updatePost, getRow, getPosts,
     updateUserProfile,
     createLike, deleteLike, getLikes,
     createComment, updateComment, deleteComment,
-    createFriend, updateFriend, deleteFriend,
+    getFriends, createFriend, updateFriend, deleteFriend,
     uploadPostImg, uploadUserImg,
     createDocument, getDocuments, getDocument, getSearchDocument, updateDocument,
-    uploadDocumentFile, uploadDocumentImageFile
+    uploadDocumentFile, uploadDocumentImageFile,
+    getMessages, createMessage, deleteMessage, getMessage,
+    getConversations,
 }

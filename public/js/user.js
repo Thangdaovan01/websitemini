@@ -47,8 +47,12 @@
          likesArr = result.likes;
          commentsArr = result.comments;
          friendsArr = result.friends;
-         // const imgElement = document.querySelector('.image-container img');
-         // imgElement.src = `${user.profilePicture}`;
+
+         const headerContainer = document.querySelector('.header-container');
+        // Thêm giá trị vào thuộc tính data-user-id
+        if (headerContainer) {
+        headerContainer.dataset.userId = user._id;
+        }
         
          showUser(user, users, posts, friendsArr);
      })
@@ -300,7 +304,7 @@ function displayFriendsList(viewUserFriendList, viewUserId) {
     const currUserFriendList = friendsArr.filter(user => user.userId === currUser._id || user.friendId === currUser._id);
 
     // Xóa dữ liệu cũ
-    friendsList.innerHTML = '';
+    friendsList.innerHTML = ''; 
 
     // Lặp qua danh sách bạn bè và thêm vào giao diện
     for (let i = 0; i < viewUserFriendList.length; i++) {

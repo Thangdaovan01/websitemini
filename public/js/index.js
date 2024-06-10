@@ -39,6 +39,12 @@ $(document).ready(function() {
         friendsArr = result.friends;
         const imgElement = document.querySelector('.image-container img');
         imgElement.src = `/userImg/${user.profilePicture}`;
+        
+        const headerContainer = document.querySelector('.header-container');
+        // Thêm giá trị vào thuộc tính data-user-id
+        if (headerContainer) {
+        headerContainer.dataset.userId = user._id;
+        }
        
         showPost(posts, 'post-content-container');
     })

@@ -9,6 +9,7 @@ apiRouter.get('/user', apiController.getUser);
 apiRouter.get('/users', apiController.getUsers); 
 
 apiRouter.post('/login', apiController.login);
+apiRouter.put('/logout', apiController.logout);
 apiRouter.post('/register', apiController.register);
 
 apiRouter.get('/row', apiController.getRow);//chưa dùng 
@@ -29,6 +30,14 @@ apiRouter.post('/comment', apiController.createComment);
 apiRouter.put('/comment', apiController.updateComment);
 apiRouter.delete('/comment', apiController.deleteComment);
 
+apiRouter.get('/messages', apiController.getMessages);
+apiRouter.get('/message', apiController.getMessage);
+apiRouter.post('/message', apiController.createMessage);
+
+apiRouter.get('/conversations', apiController.getConversations);
+// apiRouter.post('/conversation', apiController.createMessage);
+
+apiRouter.get('/friends', apiController.getFriends);
 apiRouter.post('/friend', apiController.createFriend);
 apiRouter.put('/friend', apiController.updateFriend);
 apiRouter.delete('/friend', apiController.deleteFriend);

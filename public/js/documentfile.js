@@ -101,6 +101,12 @@ $(document).ready(function() {
             currUser = result.user;
             usersArr = result.users;
             console.log("USER",result);
+
+            const headerContainer = document.querySelector('.header-container');
+            // Thêm giá trị vào thuộc tính data-user-id
+            if (headerContainer) {
+            headerContainer.dataset.userId = currUser._id;
+            }
             // showUsers(usersArr);
             showSidebar(currUser);
 
@@ -176,14 +182,72 @@ $(document).ready(function() {
 
         var school = $(this).data('school-value');
         console.log("school",school);
+        // Cập nhật URL mà không tải lại trang
+        history.pushState(null, '', '/document');
         const schoolArray = documentsArr.filter(object => object.school == school);
         showDocuments(schoolArray,`Tài liệu trường ${school}`);
     })
 
+    // my-document-upload
+    $(document).on('click', '.my-document-upload', function(event) {
+        event.stopPropagation();
+        console.log("my-document-upload")
+        var userId = $(this).closest('.sidebar').data('user-id');
+        console.log("userId",userId);
+        const myDocumentArr = documentsArr.filter(object => object.createdBy == userId);
 
+        const user = usersArr.find(user => user._id === userId);
+        const fullname = user ? user.fullname : null;
+        // Cập nhật URL mà không tải lại trang
+        history.pushState(null, '', '/document');
+        showDocuments(myDocumentArr,`Tài liệu được đăng bởi ${fullname}`);
+    })
+
+    $(document).on('click','.recently-document-item img, .recently-document-item .title', async function(event) {
+        event.stopPropagation();
+        var documentId = $(this).closest('.recently-document-item').data('document-id');
+        updateDocument(documentId);
+
+        if(documentId){
+            window.location.href = `http://localhost:3000/document/${documentId}`;
+        }
+    })
 
 
 })
+
+function updateDocument(documentId) {
+    console.log("UPDATE");
+
+    fetch('http://localhost:3000/api/document', {
+        method: "PUT",
+        headers: {
+            "Content-Type" : "application/json",
+            "Authorize" : token
+        },
+        body:JSON.stringify({documentId:documentId})
+    })
+    .then(response => {
+        return response.json().then(data => {
+            if (!response.ok) {
+                showNotification(data.message);
+                throw new Error('Network response was not ok');
+            }
+            return data;
+        });
+    })
+    .then(result => {
+        showNotification(result.message);
+        console.log("result",result)
+        // setTimeout(function() {
+        //     window.location.href = 'http://localhost:3000/';
+        // }, 500);
+    
+    })
+    .catch(error => {
+        console.error('There was a problem with your fetch operation:', error);
+    });
+}
 
 function showDocuments(documentsArr, textContent) {
     console.log("documentsArr", documentsArr); 
@@ -196,6 +260,7 @@ function showDocuments(documentsArr, textContent) {
     mainContent1.innerHTML = '';
     mainContent.style.display = 'none';
     mainContent1.style.display = 'none';
+    mainContent2.style.display = 'block';
     // Tạo khối div mới với class section và documents-section
     const sectionDiv = document.createElement('div');
     sectionDiv.classList.add('section', 'documents-section');

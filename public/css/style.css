@@ -148,8 +148,9 @@ body {
   
 }
 
-.logout-container button, .messages-container button {
+.logout-container button, .messages-container button, .messages-btn {
   background-color: transparent;
+  color: #fff;
   font-size: 24px;
   border: 0;
 }
