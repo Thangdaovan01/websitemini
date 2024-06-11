@@ -64,9 +64,18 @@ const getMessage = async (req, res) => {
     }
 }
 
+const getPost = async (req, res) => {
+    try {
+        return res.status(200).render('post');
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json('Server error');
+    }
+}
+
 module.exports = {
     getLoginPage, getHomepage,
     getAdminPage, getUserPage,
     getDocument, getDocumentFilename,
-    getMessage
+    getMessage, getPost
 }

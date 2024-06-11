@@ -8,7 +8,8 @@ const Post = new Schema({
     privacy: { type: String, default: 'public',  enum: ['public', 'friend', 'only'] },
     description: { type: String, default: '' },
     title: { type: String, default: '' },
-    documentId: { type: String, default: '' },
+    documentId: { type: String},
+    postId: { type: String},
     photo: [{ type: String, default: '' }],
     video: [{ type: String, default: '' }], 
 

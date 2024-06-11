@@ -107,12 +107,45 @@ const register = async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ message: 'Tài khoản đã tồn tại' }); // user_name đã tồn tại
         } else {
-            const userNew = new User(account);
-            // console.log("userNew", userNew);
             const token = generateToken(account);
 
-            await userNew.save();
-            return res.status(200).json({ message: 'Đăng kí thành công', token: token });
+            const checkIndex1 = await client.indices.exists({
+                index: 'users'  
+            });
+
+            if (checkIndex1) {
+                // Nếu đã tồn tại index 'posts'
+                const response = await client.index({
+                    index: 'users',
+                    body: {
+                        fullname: account.fullname,
+                    }
+                });
+                console.log("response",response)
+                account.userId = response._id;
+                console.log("account",account)
+
+                const userNew = new User(account);
+                console.log("userNew",userNew)
+
+                await userNew.save();
+                return res.status(200).json({ message: 'Đăng kí thành công', token: token });
+            } else {
+                // Nếu index 'documents' chưa tồn tại, tạo mới và thêm dữ liệu
+                await client.indices.create({
+                    index: 'users',
+                });
+                const response = await client.index({
+                    index: 'users',
+                    body: {
+                        fullname: account.fullname,
+                    }
+                });
+                account.userId = response._id;
+                const userNew = new User(account);
+                await userNew.save();
+                return res.status(200).json({ message: 'Đăng kí thành công', token: token });
+            }
         }
                 
     } catch (error) {
@@ -159,23 +192,6 @@ const getUsers = async (req, res) => {
     }
 }
 
-const getStyle = async (req, res) => {
-    try {
-        Excel.find({}) 
-        .lean() 
-        .then((excels) => {
-            return res.status(200).json(excels);
-        })
-        .catch(error => {
-            console.error(error);
-            return res.status(500).json({ message: 'Đã xảy ra lỗi trong quá trình xử lý 2' });
-        }); 
-    } catch (error) {
-        console.error(error);
-        return res.status(404).json('Server error');
-    }
-}
-
 const getRow = async (req, res) => {
     
     try {
@@ -210,6 +226,99 @@ const getRow = async (req, res) => {
     }
 }
 
+const getSearchPost = async (req, res) => {
+
+    // console.log("Get Search getSearchDocument");
+
+    try {
+        const { query } = req.query;
+        // console.log("query",query);
+        const body = await client.search({
+            index: 'documents',
+            body: {
+                query: {
+                    bool: {
+                        should: [
+                            { match_phrase: { title: query } },
+                            { match_phrase: { description: query } },
+                            { match_phrase: { documentText: query } },
+                            { match_phrase: { subject: query } },
+                            { match_phrase: { school: query } }
+                        ]
+                    }
+                }
+            }
+        });
+        // console.log("body",body.hits.hits);
+        const searchLength=body.hits.total.value;
+        const newArrayDocument = body.hits.hits.map(item => ({
+            _id: item._id,
+            _score: item._score,
+            type: 'document',
+            title: item._source.title,
+            subject: item._source.subject,
+            school: item._source.school,
+            document: item._source.document,
+            documentImage: item._source.documentImage,
+            createdAt: item._source.createdAt,
+            createdBy: item._source.createdBy,
+            description: item._source.description,
+        }));
+          
+        //tìm kiếm bài đăng
+        const bodyPost = await client.search({
+            index: 'posts',
+            body: {
+                query: {
+                    bool: {
+                        should: [
+                            { match: { description: query } },
+                        ]
+                    }
+                }
+            }
+        });
+        // console.log("bodyPost",bodyPost.hits.hits);
+        const newArrayPost = bodyPost.hits.hits.map(item => ({
+            _id: item._id,
+            _score: item._score,
+            type: 'post',
+            description: item._source.description,
+        }));
+        // console.log("newArrayPost",newArrayPost);
+
+        //tìm kiếm user
+        const bodyUser = await client.search({
+            index: 'users',
+            body: {
+                query: {
+                    bool: {
+                        should: [
+                            { match: { fullname: query } },
+                        ]
+                    }
+                }
+            }
+        });
+        const newArrayUser = bodyUser.hits.hits.map(item => ({
+            _id: item._id,
+            _score: item._score,
+            type: 'user',
+            description: item._source.fullname,
+        }));
+
+        let newArray1 = newArrayDocument.concat(newArrayPost)
+        newArray1.sort((a, b) => b._score - a._score);
+        let newArray = newArray1.concat(newArrayUser)
+        newArray.sort((a, b) => b._score - a._score);
+        return res.status(200).json({ data: newArray });
+        
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(404).json({message: 'Server error'});
+    }
+}
 
 const getPosts = async (req, res) => {
     try {
@@ -221,6 +330,22 @@ const getPosts = async (req, res) => {
         return res.status(500).json({ message: 'Lỗi từ phía server.' });
     }
 }
+
+const getPost = async (req, res) => {
+    try {
+        const id = req.header('postId');
+        // console.log("id",id)
+        const post = await Post.findById(id);
+        // console.log("post",post)
+
+        return res.status(200).json({post : post });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
 const createPost = async (req, res) => {
     try {
         const newPost = req.body;
@@ -235,8 +360,6 @@ const createPost = async (req, res) => {
         const checkAcc = decodeToken(token);
         
         const existingUser = await User.findOne({ user_name: checkAcc.user_name });
-        // console.log("existingUser", existingUser)
-
 
         if (newPost.description == '' && newPost.photo.length == 0 && newPost.video.length == 0) {
             return res.status(400).json({ message: 'Dữ liệu được gửi về Server không đầy đủ.' })
@@ -244,12 +367,49 @@ const createPost = async (req, res) => {
 
         newPost.createdBy = existingUser._id;
         newPost.updatedBy = null;
-        console.log("newPost", newPost)
 
-        const excel = new Post(newPost);
-        await excel.save();
-        return res.status(200).json({ message: 'Đã thêm dữ liệu mới.' });
-        
+       if(newPost.description !== ''){
+            // Lưu tài liệu và thông tin vào Elasticsearch
+            const checkIndex1 = await client.indices.exists({
+                index: 'posts'  
+            });
+
+            console.log("checkIndex1", checkIndex1)
+
+            if (checkIndex1) {
+                // Nếu đã tồn tại index 'posts'
+                const response = await client.index({
+                    index: 'posts',
+                    body: {
+                        description: newPost.description,
+                    }
+                });
+                console.log("response", response);
+                newPost.postId = response._id;
+                var excel = new Post(newPost);
+                await excel.save();
+                return res.status(200).json({ message: 'Đã thêm dữ liệu mới.' });
+            } else {
+                // Nếu index 'documents' chưa tồn tại, tạo mới và thêm dữ liệu
+                await client.indices.create({
+                    index: 'posts',
+                });
+                const response = await client.index({
+                    index: 'posts',
+                    body: {
+                        description: newPost.description,
+                    }
+                });
+                newPost.postId = response._id;
+                var excel = new Post(newPost);
+                await excel.save();
+                return res.status(200).json({ message: 'Đã thêm dữ liệu mới.' });
+            }
+       }else{
+            var excel = new Post(newPost);
+            await excel.save();
+            return res.status(200).json({ message: 'Đã thêm dữ liệu mới.' });
+       }
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Lỗi từ phía server.' });
@@ -259,7 +419,11 @@ const createPost = async (req, res) => {
 const updatePost = async (req, res) => {
     try {
         const updatePost = req.body;
+        const postId1 = updatePost.postId;
+        const description = updatePost.description;
+        
         const token = req.header('Authorize');
+        console.log("updatePost",updatePost);
 
         if (!token) {
             return res.status(401).json({ message: 'Không xác thực được danh tính' })
@@ -272,15 +436,64 @@ const updatePost = async (req, res) => {
         }
 
         const existingUser = await User.findOne({ user_name: checkAcc.user_name });
-        // console.log("existingUser", existingUser)
         updatePost.createdBy = existingUser._id;
         updatePost.updatedBy = existingUser._id;
-        // console.log("updatePost",updatePost);
 
-        await Post.updateOne({ _id: updatePost._id }, updatePost);
         
-        return res.status(200).json({ message: 'Cập nhật thành công.' });
 
+        if(postId1){
+            await Post.updateOne({ _id: updatePost._id }, updatePost);
+            const documentValue = await client.get({
+                index: 'posts',
+                id: postId1
+            });
+            console.log("documentValue", documentValue);
+                
+            if(documentValue){
+                const response = await client.update({
+                    index: 'posts',
+                    id: postId1,
+                    body: {
+                        doc: {
+                            description: description,
+                        }
+                    }
+                });
+            return res.status(200).json({ message: 'Cập nhật thành công' });
+            }
+        } else {
+            const checkIndex1 = await client.indices.exists({
+                index: 'posts'  
+            });
+
+            if (checkIndex1) {
+                // Nếu đã tồn tại index 'posts'
+                const response = await client.index({
+                    index: 'posts',
+                    body: {
+                        description: description,
+                    }
+                });
+                // console.log("response", response);
+                updatePost.postId = response._id;
+                await Post.updateOne({ _id: updatePost._id }, updatePost);
+                return res.status(200).json({ message: 'Đã thêm dữ liệu mới.' });
+            } else {
+                // Nếu index 'documents' chưa tồn tại, tạo mới và thêm dữ liệu
+                await client.indices.create({
+                    index: 'posts',
+                });
+                const response = await client.index({
+                    index: 'posts',
+                    body: {
+                        description: description,
+                    }
+                });
+                updatePost.postId = response._id;
+                await Post.updateOne({ _id: updatePost._id }, updatePost);
+                return res.status(200).json({ message: 'Đã thêm dữ liệu mới.' });
+            }
+        } 
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Lỗi từ phía server.' });
@@ -297,6 +510,7 @@ const deletePost = async (req, res) => {
         }
         const postsArr = await Post.find({  });
         const delPost = postsArr.filter(item => item._id == idPost);
+        const delPostId = delPost[0].postId;
         const postsArr1 = postsArr.filter(item => !(item._id == idPost));
         const likesArr = await Like.find({  });
         const likePost = likesArr.filter(item => item.likePostId == idPost);
@@ -323,11 +537,23 @@ const deletePost = async (req, res) => {
             }
         }
 
+        if(delPostId){
+            const checkIndex1 = await client.indices.exists({
+                index: 'posts'  
+            });
+            console.log("checkIndex1",checkIndex1);
+            if(checkIndex1){
+                const response = await client.delete({
+                    index: 'posts',
+                    id: delPostId
+                });
+            }
+        }
+
         if(delPost){
             await Post.deleteOne({ _id: idPost });
             return res.status(200).json({ postsArr1: postsArr1 });
         }
-
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Lỗi từ phía server' });
@@ -361,10 +587,31 @@ const updateUserProfile = async (req, res) => {
         }
 
         const existingUser = await User.findOne({ _id: updateInfo._id });
-
+        // console.log("existingUser",existingUser);
+        const userId = existingUser.userId;
         await User.updateOne({ _id: updateInfo._id }, updateInfo);
-        
-        return res.status(200).json({ message: 'Cập nhật thành công.' });
+
+        if(userId){
+            const documentValue = await client.get({
+                index: 'users',
+                id: userId
+            });
+            console.log("documentValue", documentValue);
+                
+            if(documentValue){
+                const response = await client.update({
+                    index: 'users',
+                    id: userId,
+                    body: {
+                        doc: {
+                            fullname: updateInfo.fullname,
+                        }
+                    }
+                });
+            return res.status(200).json({ message: 'Cập nhật thành công' });
+            }
+        }         
+        // return res.status(200).json({ message: 'Cập nhật thành công.' });
 
     } catch (error) {
         console.error(error);
@@ -389,7 +636,7 @@ const createLike = async (req, res) => {
     try {
         const createLike = req.body;
         const token = req.header('Authorize');
-        console.log("createLike",createLike);
+        // console.log("createLike",createLike);
         const likeArr = await Like.find({  });
 
         if (!token) {
@@ -428,7 +675,7 @@ const createLike = async (req, res) => {
                 return res.status(400).json({ message: 'Bạn đã like comment này.' });
             } else {
                 const like1 = new Like(createLike);
-                console.log("like1",like1);
+                // console.log("like1",like1);
                 await like1.save();
                 const likeArr1 = await Like.find({  });
                 return res.status(200).json({ likeArr1: likeArr1 });
@@ -451,7 +698,7 @@ const deleteLike = async (req, res) => {
         const delLike = likeArr.filter(item => item.userId == userIdToCheck && item.likePostId == likePostIdToCheck);
         const likeArr1 = likeArr.filter(item => !(item.userId == userIdToCheck && item.likePostId == likePostIdToCheck));
 
-        console.log("delLike._id",delLike[0]._id);
+        // console.log("delLike._id",delLike[0]._id);
         const delLikeId = delLike[0]._id;
         if (deleteLike.userId == '' && deleteLike.likePostId == 0) {
             return res.status(400).json({ message: 'Thông tin về dữ liệu bạn muốn xóa không được gửi về server.'});
@@ -472,7 +719,7 @@ const createComment = async (req, res) => {
     try {
         const newComment = req.body;
         const token = req.header('Authorize');
-        console.log("token",token);
+        // console.log("token",token);
         console.log("newComment",newComment);
 
         if (!token) {
@@ -868,8 +1115,8 @@ const updateDocument = async (req, res) => {
         // console.log("documentValue", documentValue);
         var viewValue = documentValue._source.viewValue;
         var viewCount = documentValue._source.viewCount;
-        console.log("viewValue", viewValue);
-        console.log("viewCount", viewCount);
+        // console.log("viewValue", viewValue);
+        // console.log("viewCount", viewCount);
 
         if(!documentValue._source.viewValue){
             viewValue = [
@@ -889,8 +1136,8 @@ const updateDocument = async (req, res) => {
             )
             viewCount += 1;
         }
-        console.log("viewValue1", viewValue);
-        console.log("viewCount1", viewCount);
+        // console.log("viewValue1", viewValue);
+        // console.log("viewCount1", viewCount);
 
         if(documentValue){
             const response = await client.update({
@@ -1131,8 +1378,7 @@ const createConversation = async (req, res) => {
 
 module.exports = {
     login, register, logout, getUser, getUsers,
-    getStyle, 
-    deletePost, createPost, updatePost, getRow, getPosts,
+    deletePost, createPost, updatePost, getRow, getPosts, getSearchPost, getPost,
     updateUserProfile,
     createLike, deleteLike, getLikes,
     createComment, updateComment, deleteComment,

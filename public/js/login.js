@@ -106,6 +106,8 @@ $(document).ready(function() {
             user_name: user_name,
             fullname: fullname,
             password: password,
+            profilePicture: "avatar.jpg",
+            coverPicture: "cover.jpg",
             role: 'user'
         }
 

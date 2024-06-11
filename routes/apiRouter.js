@@ -4,7 +4,6 @@ const apiRouter = express.Router();
 const {removeVietnameseTones, renameImageFile, renameDocumentFile} = require('../utils/util')
  
 //login logout
-apiRouter.get('/style', apiController.getStyle); //chưa dùng 
 apiRouter.get('/user', apiController.getUser); 
 apiRouter.get('/users', apiController.getUsers); 
 
@@ -14,7 +13,9 @@ apiRouter.post('/register', apiController.register);
 
 apiRouter.get('/row', apiController.getRow);//chưa dùng 
 
+apiRouter.get('/searchPost', apiController.getSearchPost); 
 apiRouter.get('/posts', apiController.getPosts);
+apiRouter.get('/post', apiController.getPost);
 apiRouter.post('/post', apiController.createPost);
 apiRouter.put('/post', apiController.updatePost);
 apiRouter.delete('/post', apiController.deletePost);

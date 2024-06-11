@@ -9,10 +9,11 @@ const User = new Schema({
     role: { type: String, default: '',  enum: ['user', 'admin'] },
     gender: { type: String, default: 'other',  enum: ['male', 'female', 'other'] },
     dateJoined: { type: Date, default: Date.now },
-    profilePicture: { type: String, default: 'https://cdn-media.sforum.vn/storage/app/media/wp-content/uploads/2023/10/avatar-trang-4.jpg'},
-    coverPicture: { type: String, default: 'https://media.sproutsocial.com/uploads/1c_facebook-cover-photo_clean@2x.png'},
+    profilePicture: { type: String, default: 'avatar.jpg'},
+    coverPicture: { type: String, default: 'cover.jpg'},
     bio: {type: String, maxlength: 500},
-    active: {type: Boolean, default: false },
+    userId: {type: String},
+    active: {type: Boolean, default: true },
     birthday: { type: Date },
 
 }, {

@@ -13,6 +13,10 @@ var postImageFileName = '';
 const token = localStorage.getItem('jwtToken');
 
 $(document).ready(function() {
+    fetchUsers()
+})
+
+async function fetchUsers() {
     fetch('http://localhost:3000/api/user', {
         method: "GET",
         headers: {
@@ -37,21 +41,29 @@ $(document).ready(function() {
         likesArr = result.likes;
         commentsArr = result.comments;
         friendsArr = result.friends;
+
+        // console.log("user",user)
         const imgElement = document.querySelector('.image-container img');
-        imgElement.src = `/userImg/${user.profilePicture}`;
+        if(imgElement){
+            imgElement.src = `/userImg/${user.profilePicture}`;
+        }
         
         const headerContainer = document.querySelector('.header-container');
         // Thêm giá trị vào thuộc tính data-user-id
         if (headerContainer) {
         headerContainer.dataset.userId = user._id;
         }
+
+        const currentURL = window.location.href;
+        if (currentURL === 'http://localhost:3000/' || currentURL === 'http://localhost:3000') {
+            showPost(posts, 'post-content-container');
+        }
        
-        showPost(posts, 'post-content-container');
     })
     .catch(error => {
         console.error('There was a problem with your fetch operation:', error);
     });
-})
+}
 
 $(document).ready(function() {
     $(document).on('click', '.messages-btn', function(event) { 
@@ -62,9 +74,9 @@ $(document).ready(function() {
     //Chưa làm
     $('#search_form').submit(function(event){
         event.preventDefault();
-        key = $('#search_form input[type="text"]').val().toLowerCase();
-        console.log(key);
-        search(key);
+        searchText = $('#search_form input[type="text"]').val().toLowerCase();
+        console.log("searchText",searchText);
+        searchPost(searchText);
         $('#search_form input[type="text"]').val('');
 
     });
@@ -371,7 +383,7 @@ $(document).ready(function() {
         var description = $data.find('.description').val();
         var privacy = $data.find('#privacy').val();
         
-        // console.log("photoValues toàn cục", photoValues1);
+        console.log("post1", post1);
 
         var videoValues = [];
         var photoValues = photoValues1;
@@ -389,6 +401,7 @@ $(document).ready(function() {
             video: videoValues,
             createdBy: user._id,
             updatedBy: user._id,
+            postId: post1.postId
         };
         // console.log("updatePost1", updatePost1);
 
@@ -1126,6 +1139,23 @@ $(document).ready(function() {
         }
     })
 
+    $(document).on('click', '.user-search-page', function(event) { 
+        event.stopPropagation();
+        const id = $(this).closest('.user-search').data('user-id');
+        window.location.href = 'http://localhost:3000/user?id='+id;
+    });
+
+    $(document).on('click', '.document-search-page', function(event) { 
+        event.stopPropagation();
+        const id = $(this).closest('.document-search').data('document-id');
+        window.location.href = `http://localhost:3000/document/${id}`;
+    });
+
+    $(document).on('click', '.post-search-page', function(event) { 
+        event.stopPropagation();
+        const id = $(this).closest('.post-search').data('post-id');
+        window.location.href = `http://localhost:3000/post/${id}`;
+    });
     
 
 });
@@ -1483,9 +1513,9 @@ async function fileReaderPostImage(formData) {
     }       
 }
 
-//Chưa dùng
-function search (value) {
-    fetch(`http://localhost:3000/api/row?key=${ value }`, {
+
+function searchPost (searchText) {
+    fetch(`http://localhost:3000/api/searchPost?query=${encodeURIComponent(searchText)}`, {
             method: "GET",
             headers: {
                 "Content-Type" : "application/json",
@@ -1502,19 +1532,105 @@ function search (value) {
             });
         })
         .then(result => {
-            var data = result;
-            console.log("data",data);
-            $(".table").each(function() {
-                $(this).find("thead").empty();
-                $(this).find("tbody").empty();
-                $(this).find("tfoot").empty();
-            });
-            showData(data);
+            var dataArr = result.data;
+            // console.log("data search post",dataArr);
+            showPostSearch(dataArr);
+            
         })
         .catch(error => {
             console.error('There was a problem with your fetch operation:', error);
         });
     
+}
+
+function filterItems(type) {
+    // Xóa class active khỏi tất cả các nút
+    document.querySelectorAll('.button-container button').forEach(button => {
+        button.classList.remove('active');
+    });
+
+    // Thêm class active vào nút được nhấn
+    document.getElementById(type).classList.add('active');
+
+    // Hiển thị hoặc ẩn các hàng theo loại
+    document.querySelectorAll('.item').forEach(item => {
+        if (type === 'all' || item.getAttribute('data-type') === type) {
+            item.classList.remove('hidden');
+        } else {
+            item.classList.add('hidden');
+        }
+    });
+}
+
+function showPostSearch(dataArr) {
+    console.log("data search post dataArr", dataArr);
+    var dataArrLength = dataArr.length
+    const mainContent = document.querySelector('.post-container');
+    // Làm trống nội dung bên trong main-content
+    mainContent.innerHTML = '';
+
+    // const tbodyContent = document.getElementById('.table-body');
+    // console.log("tbodyContent", tbodyContent);
+
+    var tbodyHTMLAll = ``
+    var tbodyHTML = ``;
+    for (let i = 0; i < dataArrLength; i++){
+        console.log("STT", i);
+        console.log("dataArr", dataArr[i]);
+        var dataType = dataArr[i].type;
+        var dataId = dataArr[i]._id;
+        if(dataType == 'document'){
+            tbodyHTML = `
+            <tr class="item document-search" data-type="documents" data-document-id="${dataId}">
+                <td class="td1"><i class="fa-solid fa-file"></i> Tài liệu</td>
+                <td class="td2 document-search-page">${dataArr[i].description}</td>
+            </tr>
+            `
+        } else if (dataType == 'post') {
+            var post = posts.find(post => post.postId === dataId);
+            tbodyHTML = `
+            <tr class="item post-search" data-type="posts" data-post-id="${post._id}">
+                <td class="td1"><i class="fa-solid fa-image"></i> Bài đăng</td>
+                <td class="td2 post-search-page">${dataArr[i].description}</td>
+            </tr>
+            `
+        } else if (dataType == 'user') {
+            var user = users.find(user => user.userId === dataId);
+            tbodyHTML = `
+            <tr class="item user-search" data-type="people" data-user-id="${user._id}">
+                <td class="td1"><i class="fa-solid fa-users"></i> Mọi người</td>
+                <td class="td2 user-search-page"><img src="/userImg/${user.profilePicture}" alt="Profile"><span class="bold">${user.fullname}</span></td>
+            </tr>
+            `
+        }
+        tbodyHTMLAll += tbodyHTML;
+        // tbodyContent.innerHTML = tbodyHTML;
+    }
+    // console.log("tbodyContent", tbodyContent);
+
+    mainContent.innerHTML = `
+    <div class="button-container">
+        <button id="all" class="active" onclick="filterItems('all')">Tất cả</button>
+        <button id="people" onclick="filterItems('people')">Mọi người</button>
+        <button id="posts" onclick="filterItems('posts')">Bài đăng</button>
+        <button id="documents" onclick="filterItems('documents')">Tài liệu</button>
+    </div>
+    <table>
+        <thead style="display: none;">
+            <tr>
+                <th>Loại</th>
+                <th>Chi tiết</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            ${tbodyHTMLAll}
+        </tbody>
+    </table>
+    `
+
+    
+
+
 }
 
 function showNotification(message) {
@@ -1535,8 +1651,6 @@ function showNotification(message) {
 
 async function showPost(postsArr, className) {
     // console.log(" showPost likesArr");
-    console.log(" showPost postsArr",postsArr);
-    
     var postContentContainer = document.querySelector(`.${className}`);
     var dataLength = postsArr.length;
 
@@ -1549,6 +1663,7 @@ async function showPost(postsArr, className) {
     var postContent = ``;
     for (let i = 0; i < dataLength; i++) {
         const postsArrId = postsArr[i]._id;
+        
         var userCreate = findObjectById(users, postsArr[i].createdBy );
         var postCreatedAt = formatDateAndTooltip1(postsArr[i].createdAt);
         var postCreatedAtTooltip = formatDateAndTooltip2(postsArr[i].createdAt); //Số lượt like
@@ -1556,7 +1671,6 @@ async function showPost(postsArr, className) {
         //Hiển thị những người like
         var likesPost = likesArr.filter(item => item.likePostId == postsArrId);
         var peoplelikesPost = likesPost.map(user => user.userId);
-        // console.log("likesPost",likesPost)
         var fullnamePeopleLike = getFullnameFromUserId(peoplelikesPost, users);
         var peoplelikesPostList = createPeopleLikeList(fullnamePeopleLike);
         
