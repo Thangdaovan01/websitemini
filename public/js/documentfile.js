@@ -5,60 +5,60 @@ var postsArr = [];
 var currUser = {};
 var documentsArr = [];
 
-const token = localStorage.getItem('jwtToken');
+// const token = localStorage.getItem('jwtToken');
 
 $(document).ready(function() {
     //Lấy giá trị like
-    fetch('http://localhost:3000/api/likes', {
-        method: "GET",
-        headers: {
-            "Content-Type" : "application/json",
-            "Authorize" : token
-        }
-    })
-    .then(response => {
-        return response.json().then(data => {
-            if (!response.ok) {
-                showNotification(data.message);
-                window.location.href = 'http://localhost:3000/login-register';
-                throw new Error('Network response was not ok');
-            }
-            return data;
-        });
-    })
-    .then(result => {
-        likesArr = result.likes;
-        // console.log("LIKE",likesArr);
-    })
-    .catch(error => {
-        console.error('There was a problem with your fetch operation:', error);
-    });
+    // fetch('http://localhost:3000/api/likes', {
+    //     method: "GET",
+    //     headers: {
+    //         "Content-Type" : "application/json",
+    //         "Authorize" : token
+    //     }
+    // })
+    // .then(response => {
+    //     return response.json().then(data => {
+    //         if (!response.ok) {
+    //             showNotification(data.message);
+    //             window.location.href = 'http://localhost:3000/login-register';
+    //             throw new Error('Network response was not ok');
+    //         }
+    //         return data;
+    //     });
+    // })
+    // .then(result => {
+    //     likesArr = result.likes;
+    //     // console.log("LIKE",likesArr);
+    // })
+    // .catch(error => {
+    //     console.error('There was a problem with your fetch operation:', error);
+    // });
 
-    //Lấy giá trị posts
-    fetch('http://localhost:3000/api/posts', {
-        method: "GET",
-        headers: {
-            "Content-Type" : "application/json",
-            "Authorize" : token
-        }
-    })
-    .then(response => {
-        return response.json().then(data => {
-            if (!response.ok) {
-                showNotification(data.message);
-                window.location.href = 'http://localhost:3000/login-register';
-                throw new Error('Network response was not ok');
-            }
-            return data;
-        });
-    })
-    .then(result => {
-        const postsArr1 = result.posts;
-        postsArr = postsArr1.filter(post => post.documentId && post.documentId.trim() !== '');
-    })
-    .catch(error => {
-        console.error('There was a problem with your fetch operation:', error);
-    });
+    // //Lấy giá trị posts
+    // fetch('http://localhost:3000/api/posts', {
+    //     method: "GET",
+    //     headers: {
+    //         "Content-Type" : "application/json",
+    //         "Authorize" : token
+    //     }
+    // })
+    // .then(response => {
+    //     return response.json().then(data => {
+    //         if (!response.ok) {
+    //             showNotification(data.message);
+    //             window.location.href = 'http://localhost:3000/login-register';
+    //             throw new Error('Network response was not ok');
+    //         }
+    //         return data;
+    //     });
+    // })
+    // .then(result => {
+    //     const postsArr1 = result.posts;
+    //     postsArr = postsArr1.filter(post => post.documentId && post.documentId.trim() !== '');
+    // })
+    // .catch(error => {
+    //     console.error('There was a problem with your fetch operation:', error);
+    // });
 
     //Lấy documentsArr
     fetch('http://localhost:3000/api/documents', {
@@ -108,7 +108,7 @@ $(document).ready(function() {
             headerContainer.dataset.userId = currUser._id;
             }
             // showUsers(usersArr);
-            showSidebar(currUser);
+            // showSidebar(currUser);
 
             console.log("getDocumentsFILE");
             const path = window.location.pathname;
@@ -154,12 +154,12 @@ $(document).ready(function() {
 })
 
 $(document).ready(function() {
-    $(document).on('click', '.user-page', function(event) {
-        event.stopPropagation();
+    // $(document).on('click', '.user-page', function(event) {
+    //     event.stopPropagation();
 
-        var userId = $(this).closest('.sidebar').data('user-id');
-        window.location.href = 'http://localhost:3000/user?id='+userId;
-    })
+    //     var userId = $(this).closest('.sidebar').data('user-id');
+    //     window.location.href = 'http://localhost:3000/user?id='+userId;
+    // })
 
     $(document).on('click', '.author-page', function(event) {
         event.stopPropagation();
@@ -189,144 +189,144 @@ $(document).ready(function() {
     })
 
     // my-document-upload
-    $(document).on('click', '.my-document-upload', function(event) {
-        event.stopPropagation();
-        console.log("my-document-upload")
-        var userId = $(this).closest('.sidebar').data('user-id');
-        console.log("userId",userId);
-        const myDocumentArr = documentsArr.filter(object => object.createdBy == userId);
+    // $(document).on('click', '.my-document-upload', function(event) {
+    //     event.stopPropagation();
+    //     console.log("my-document-upload")
+    //     var userId = $(this).closest('.sidebar').data('user-id');
+    //     console.log("userId",userId);
+    //     const myDocumentArr = documentsArr.filter(object => object.createdBy == userId);
 
-        const user = usersArr.find(user => user._id === userId);
-        const fullname = user ? user.fullname : null;
-        // Cập nhật URL mà không tải lại trang
-        history.pushState(null, '', '/document');
-        showDocuments(myDocumentArr,`Tài liệu được đăng bởi ${fullname}`);
-    })
+    //     const user = usersArr.find(user => user._id === userId);
+    //     const fullname = user ? user.fullname : null;
+    //     // Cập nhật URL mà không tải lại trang
+    //     history.pushState(null, '', '/document');
+    //     showDocuments(myDocumentArr,`Tài liệu được đăng bởi ${fullname}`);
+    // })
 
-    $(document).on('click','.recently-document-item img, .recently-document-item .title', async function(event) {
-        event.stopPropagation();
-        var documentId = $(this).closest('.recently-document-item').data('document-id');
-        updateDocument(documentId);
+    // $(document).on('click','.recently-document-item img, .recently-document-item .title', async function(event) {
+    //     event.stopPropagation();
+    //     var documentId = $(this).closest('.recently-document-item').data('document-id');
+    //     updateDocument(documentId);
 
-        if(documentId){
-            window.location.href = `http://localhost:3000/document/${documentId}`;
-        }
-    })
+    //     if(documentId){
+    //         window.location.href = `http://localhost:3000/document/${documentId}`;
+    //     }
+    // })
 
 
 })
 
-function updateDocument(documentId) {
-    console.log("UPDATE");
+// function updateDocument(documentId) {
+//     console.log("UPDATE");
 
-    fetch('http://localhost:3000/api/document', {
-        method: "PUT",
-        headers: {
-            "Content-Type" : "application/json",
-            "Authorize" : token
-        },
-        body:JSON.stringify({documentId:documentId})
-    })
-    .then(response => {
-        return response.json().then(data => {
-            if (!response.ok) {
-                showNotification(data.message);
-                throw new Error('Network response was not ok');
-            }
-            return data;
-        });
-    })
-    .then(result => {
-        showNotification(result.message);
-        console.log("result",result)
-        // setTimeout(function() {
-        //     window.location.href = 'http://localhost:3000/';
-        // }, 500);
+//     fetch('http://localhost:3000/api/document', {
+//         method: "PUT",
+//         headers: {
+//             "Content-Type" : "application/json",
+//             "Authorize" : token
+//         },
+//         body:JSON.stringify({documentId:documentId})
+//     })
+//     .then(response => {
+//         return response.json().then(data => {
+//             if (!response.ok) {
+//                 showNotification(data.message);
+//                 throw new Error('Network response was not ok');
+//             }
+//             return data;
+//         });
+//     })
+//     .then(result => {
+//         showNotification(result.message);
+//         console.log("result",result)
+//         // setTimeout(function() {
+//         //     window.location.href = 'http://localhost:3000/';
+//         // }, 500);
     
-    })
-    .catch(error => {
-        console.error('There was a problem with your fetch operation:', error);
-    });
-}
+//     })
+//     .catch(error => {
+//         console.error('There was a problem with your fetch operation:', error);
+//     });
+// }
 
-function showDocuments(documentsArr, textContent) {
-    console.log("documentsArr", documentsArr); 
-    var documentsLength = documentsArr.length
-    const mainContent = document.querySelector('.file-container'); 
-    const mainContent1 = document.querySelector('.document-info-container'); 
-    const mainContent2 = document.querySelector('.main-content'); 
-    // Làm trống nội dung bên trong main-content
-    mainContent.innerHTML = '';
-    mainContent1.innerHTML = '';
-    mainContent.style.display = 'none';
-    mainContent1.style.display = 'none';
-    mainContent2.style.display = 'block';
-    // Tạo khối div mới với class section và documents-section
-    const sectionDiv = document.createElement('div');
-    sectionDiv.classList.add('section', 'documents-section');
-    // Tạo thẻ h3 với nội dung
-    const h3 = document.createElement('h3');
-    h3.textContent = `${textContent}`;
-    // Tạo khối div mới với class items và document-items
-    const itemsDiv = document.createElement('div');
-    itemsDiv.classList.add('items', 'document-items');
-    // Thêm thẻ h3 và khối itemsDiv vào sectionDiv
-    sectionDiv.appendChild(h3);
-    sectionDiv.appendChild(itemsDiv);
-    mainContent2.appendChild(sectionDiv);
+// function showDocuments(documentsArr, textContent) {
+//     console.log("documentsArr", documentsArr); 
+//     var documentsLength = documentsArr.length
+//     const mainContent = document.querySelector('.file-container'); 
+//     const mainContent1 = document.querySelector('.document-info-container'); 
+//     const mainContent2 = document.querySelector('.main-content'); 
+//     // Làm trống nội dung bên trong main-content
+//     mainContent.innerHTML = '';
+//     mainContent1.innerHTML = '';
+//     mainContent.style.display = 'none';
+//     mainContent1.style.display = 'none';
+//     mainContent2.style.display = 'block';
+//     // Tạo khối div mới với class section và documents-section
+//     const sectionDiv = document.createElement('div');
+//     sectionDiv.classList.add('section', 'documents-section');
+//     // Tạo thẻ h3 với nội dung
+//     const h3 = document.createElement('h3');
+//     h3.textContent = `${textContent}`;
+//     // Tạo khối div mới với class items và document-items
+//     const itemsDiv = document.createElement('div');
+//     itemsDiv.classList.add('items', 'document-items');
+//     // Thêm thẻ h3 và khối itemsDiv vào sectionDiv
+//     sectionDiv.appendChild(h3);
+//     sectionDiv.appendChild(itemsDiv);
+//     mainContent2.appendChild(sectionDiv);
 
-    const documentContainer = document.querySelector('.documents-section .items');
-    var documentHTML = ``;
-    for(let i = 0; i < documentsLength; i++) {
-        var timeCreatedAgo = timeAgo(documentsArr[i].createdAt);
+//     const documentContainer = document.querySelector('.documents-section .items');
+//     var documentHTML = ``;
+//     for(let i = 0; i < documentsLength; i++) {
+//         var timeCreatedAgo = timeAgo(documentsArr[i].createdAt);
 
-        const postDocument = postsArr.find(post => post.documentId === documentsArr[i]._id);
-        // console.log("postDocument",postDocument);
-        const likeDocument = likesArr.filter(like => like.likePostId === postDocument._id).length;
+//         const postDocument = postsArr.find(post => post.documentId === documentsArr[i]._id);
+//         // console.log("postDocument",postDocument);
+//         const likeDocument = likesArr.filter(like => like.likePostId === postDocument._id).length;
 
-        documentHTML += `
-        <div class="item recently-document-item recently-document-item-${documentsArr[i]._id}" data-document-id="${documentsArr[i]._id}">
-            <img src="/documentsImg/${documentsArr[i].documentImage}" >
-            <div class="title">${documentsArr[i].title}</div>
-            <div class="description"> ${documentsArr[i].description} </div>
-            <div class="meta">
-                <span class="likes">${likeDocument} Likes</span>
-                <span class="date">${timeCreatedAgo}</span>
-            </div>
-        </div>   
-        `
-        documentContainer.innerHTML = documentHTML;
-    }
-}
+//         documentHTML += `
+//         <div class="item recently-document-item recently-document-item-${documentsArr[i]._id}" data-document-id="${documentsArr[i]._id}">
+//             <img src="/documentsImg/${documentsArr[i].documentImage}" >
+//             <div class="title">${documentsArr[i].title}</div>
+//             <div class="description"> ${documentsArr[i].description} </div>
+//             <div class="meta">
+//                 <span class="likes">${likeDocument} Likes</span>
+//                 <span class="date">${timeCreatedAgo}</span>
+//             </div>
+//         </div>   
+//         `
+//         documentContainer.innerHTML = documentHTML;
+//     }
+// }
 
-function timeAgo(timestamp) {
-    const now = Date.now();
-    const diff = now - timestamp;
+// function timeAgo(timestamp) {
+//     const now = Date.now();
+//     const diff = now - timestamp;
   
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+//     const seconds = Math.floor(diff / 1000);
+//     const minutes = Math.floor(seconds / 60);
+//     const hours = Math.floor(minutes / 60);
+//     const days = Math.floor(hours / 24);
   
-    if (days > 0) {
-      return `${days} ngày trước`;
-    } else if (hours > 0) {
-      return `${hours} giờ trước`;
-    } else if (minutes > 0) {
-      return `${minutes} phút trước`;
-    } else {
-      return `${seconds} giây trước`;
-    }
-  }
+//     if (days > 0) {
+//       return `${days} ngày trước`;
+//     } else if (hours > 0) {
+//       return `${hours} giờ trước`;
+//     } else if (minutes > 0) {
+//       return `${minutes} phút trước`;
+//     } else {
+//       return `${seconds} giây trước`;
+//     }
+//   }
 
-function showSidebar(user) {
-    const userId = user._id;
-    const count = documentsArr.filter(doc => doc.createdBy === userId).length;
-    document.querySelector('.profile .username').textContent = user.fullname;
-    document.querySelector('.profile .uploadCount').textContent = `${count} Tải lên`;
-    const sidebar = document.querySelector('.sidebar');
-    sidebar.setAttribute('data-user-id', userId);
-}
+// function showSidebar(user) {
+//     const userId = user._id;
+//     const count = documentsArr.filter(doc => doc.createdBy === userId).length;
+//     document.querySelector('.profile .username').textContent = user.fullname;
+//     document.querySelector('.profile .uploadCount').textContent = `${count} Tải lên`;
+//     const sidebar = document.querySelector('.sidebar');
+//     sidebar.setAttribute('data-user-id', userId);
+// }
 
 function showDocument(documentFile) {
     // Lấy thẻ iframe bằng ID

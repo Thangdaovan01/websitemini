@@ -9,6 +9,8 @@
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/post.css">
+    <link rel="stylesheet" href="css/header.css">
+
     <!-- <link rel="stylesheet" href="css/document.css"> -->
     <!-- <link rel="stylesheet" href="css/comment.css"> -->
     <link rel="stylesheet" href="css/message.css">
@@ -19,28 +21,7 @@
 </head>
 
 <body> 
-    <div class="header-container">
-        
-        <div class="logo">
-            <a class="" href="/">WEBSITE</a>
-        </div>
-        <div class="nav-container">
-            <a class="" id="priceList" href="/document">Tài liệu</a>
-        </div>
-        <div class="messages-container">
-            <button id="messages" title="Tin nhắn" class="messages-btn"><i class="fa-solid fa-comment-dots"></i></i></button>
-        </div>
-        <div class="search-container">
-            <form class="search-form" id="search_form" >
-                <input type="text" name="searchText" class="searchText">
-                <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-            </form>
-        </div>
-        <div class="logout-container">
-            <button id="logout" title="Đăng xuất" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i></button>
-        </div>
-
-    </div>
+  <%- include ("header") %>
 
     <main>
 

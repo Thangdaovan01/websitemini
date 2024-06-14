@@ -9,6 +9,8 @@ var profilePicture2 = '';
 var coverPicture2 = '';
 var userImageFileName = '';
 var postImageFileName = '';
+var documentFileName = '';
+var imageFileName = '';
 
 const token = localStorage.getItem('jwtToken');
 
@@ -130,7 +132,7 @@ $(document).ready(function() {
 
     $(document).on('click', '.create-file-btn', function(event) { 
         event.stopPropagation();
-        
+        console.log("create-file-btn")
         $("body").children().not(".window, .notification").addClass("blur");
 
         var newPost = ``
@@ -210,6 +212,9 @@ $(document).ready(function() {
         var description = document.getElementById('description').value;
         var school = document.getElementById('school').value;
         var subject = document.getElementById('subject').value;
+        console.log("title",title);
+        console.log("description",description);
+        console.log("imageFileName",imageFileName);
         
         var newDocument = {
             document: documentFileName,
@@ -228,6 +233,44 @@ $(document).ready(function() {
             return
         }
         createNewDocument(newDocument);
+    })
+
+    $(document).on('change','#document', async function(event) {
+        event.stopPropagation();
+
+        var formData = new FormData();
+        var documentFile = document.getElementById('document').files[0];
+        documentFile.fieldname = 'document';
+        formData.append('document', documentFile);
+
+        if (documentFile) {
+            try {
+                const documentName = await fileReaderDocument(formData);
+            } catch (error) {
+                console.error('Error uploading image:', error);
+            }
+        } else {
+            showNotification('Vui lòng chọn một tệp ảnh hợp lệ.');
+        }
+    })
+
+    $(document).on('change','#document-image', async function(event) {
+        event.stopPropagation();
+
+        var formData = new FormData();
+        var imageFile = document.getElementById('document-image').files[0];
+        imageFile.fieldname = 'documentImage';
+        formData.append('documentImage', imageFile);
+
+        if (imageFile) {
+            try {
+                const documentName = await fileReaderImage(formData);
+            } catch (error) {
+                console.error('Error uploading image:', error);
+            }
+        } else {
+            showNotification('Vui lòng chọn một tệp ảnh hợp lệ.');
+        }
     })
 
     $(document).on('click', '.post-button', async function(event) {
@@ -1160,8 +1203,72 @@ $(document).ready(function() {
 
 });
 
+
+async function fileReaderDocument(formData) {
+    console.log("fileReaderDocument");
+    try {
+        const response = await fetch('http://localhost:3000/api/uploadDocument', {
+            method: "POST",
+            body: formData
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (!response.ok) {
+                    showNotification(data.message);
+                    throw new Error('Network response was not ok');
+                }
+                return data;
+            });
+        })
+        .then(result => {
+            // showNotification(result.message);
+            console.log("fileReaderDocument",result);
+            documentFileName = result.filename;
+        })
+        .catch(error => {
+            console.error('There was a problem with your fetch operation:', error);
+        });
+
+                
+    } catch (error) {
+        console.error('There was a problem with your fetch operation:', error);
+    }       
+}
+
+async function fileReaderImage(formData) {
+    console.log("fileReaderImage");
+    try {
+        const response = await fetch('http://localhost:3000/api/uploadDocumentImage', {
+            method: "POST",
+            body: formData
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (!response.ok) {
+                    showNotification(data.message);
+                    throw new Error('Network response was not ok');
+                }
+                return data;
+            });
+        })
+        .then(result => {
+            // showNotification(result.message);
+            console.log("fileReaderImage result",result);
+            imageFileName = result.filename;
+
+        })
+        .catch(error => {
+            console.error('There was a problem with your fetch operation:', error);
+        });
+
+                
+    } catch (error) {
+        console.error('There was a problem with your fetch operation:', error);
+    }       
+}
+
+
 function createNewDocument(newDocument){
-    console.log("createNewDocument",newDocument);
     fetch('http://localhost:3000/api/document', {
         method: "POST",
         headers: {
@@ -1180,13 +1287,9 @@ function createNewDocument(newDocument){
         });
     })
     .then(result => {
-        showNotification(result.message);
-        console.log("createNewDocument",result);
-        // $('#document_display').html(`<h2>Uploaded Document</h2><p>Title: ${result.title}</p><p>Description: ${result.description}</p><p>Field of Study: ${result.field}</p>`);
-
         setTimeout(function() {
-            window.location.href = 'http://localhost:3000/document';
-        }, 500);
+            window.location.href = 'http://localhost:3000';
+        }, 10000);
     })
     .catch(error => {
         console.error('There was a problem with your fetch operation:', error);
@@ -1393,58 +1496,6 @@ function createCommentsHTML(comments, users, likesArr, currUser) {
             </div>
         `;
     }).join('');
-}
-
-//Hàm lưu ảnh  chưa dùng tới
-async function fileReaderImage(file) {
-    console.log("fileReaderImage");
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        console.log("reader",reader);
-
-        reader.onload = async function(event) {
-            const imageDataUrl = event.target.result;
-            // console.log("imageDataUrl",imageDataUrl)
-            // Tải ảnh lên Cloudinary
-            var fileimage = {
-                imageUrl: imageDataUrl,
-            };
-
-            try {
-                const response = await fetch('http://localhost:3000/api/upload', {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(fileimage)
-                });
-
-                if (!response.ok) {
-                    const data = await response.json();
-                    showNotification(data.message);
-                    throw new Error('Network response was not ok');
-                }
-
-                const result = await response.json();
-                resolve(result.imageUrl);
-            } catch (error) {
-                console.error('There was a problem with your fetch operation:', error);
-                reject(error);
-            }
-        };
-
-        // Xử lý sự kiện khi có lỗi xảy ra
-        reader.onerror = function(error) {
-            reject(error);
-        };
-
-        // Đọc tệp ảnh
-        if (file instanceof Blob) {
-            reader.readAsDataURL(file);
-        } else {
-            reject(new TypeError('The provided value is not a Blob.'));
-        }
-    });
 }
 
 //Lưu ảnh avatar và cover

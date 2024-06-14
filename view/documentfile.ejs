@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/header.css">
+
     <link rel="stylesheet" href="/css/document.css">
     <link rel="stylesheet" href="/css/documentfile.css">
 
@@ -18,15 +20,13 @@
 </head>
 <body>
     <div class="header-container">
-        
         <div class="logo">
-            <a class="" href="/">EXCEL</a>
+            <a class="" href="/">WEBSITE</a>
         </div>
         <div class="nav-container">
             <a class="" id="priceList" href="/document">Tài liệu</a>
         </div>
         <div class="messages-container">
-            <!-- <button id="messages" title="Tin nhắn" class="messages-btn"><i class="fa-solid fa-comment-dots"></i></i></button> -->
             <a class="messages-btn" id="messages" href="/message"><i class="fa-solid fa-comment-dots"></i></a>
         </div>
         <div class="search-document-container">
@@ -38,8 +38,8 @@
         <div class="logout-container">
             <button id="logout" title="Đăng xuất" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
-
     </div>
+
     <main>  
         <div class="sidebar">
             <div class="profile">
@@ -50,18 +50,30 @@
             </div>
             
             <div class="menu">
-                <span><i class="fa-regular fa-folder-open"></i> Tài liệu môn học</span>
-                <ul>
-                    <li>Trường A</li>
-                    <li>Trường B</li>
-                    <li>Trường C</li>
-                </ul>
-                <span><i class="fa-regular fa-heart"></i> Tài liệu yêu thích</span>
+                <span class="document-school"><i class="fa-regular fa-folder-open"></i> Tài liệu các trường</span>
+                <select id="schoolSelect" style="display: none;">
+                    <option class="document-school-page" value=""><i class="fa-regular fa-folder-open"></i> Tài liệu các trường</option>
+                    <option class="document-school-page" value="Trường Cơ khí">Trường Cơ khí</option>
+                    <option class="document-school-page" value="Trường Công nghệ Thông tin và Truyền thông">Trường Công nghệ Thông tin và Truyền thông</option>
+                    <option class="document-school-page" value="Trường Điện - Điện tử">Trường Điện - Điện tử</option>
+                    <option class="document-school-page" value="Trường Hoá và Khoa học sự sống">Trường Hoá và Khoa học sự sống</option>
+                    <option class="document-school-page" value="Trường Vật liệu">Trường Vật liệu</option>
+                    <option class="document-school-page" value="Khoa Toán - Tin">Khoa Toán - Tin</option>
+                    <option class="document-school-page" value="Khoa Vật lý Kỹ thuật">Khoa Vật lý Kỹ thuật</option>
+                    <option class="document-school-page" value="Khoa Ngoại ngữ">Khoa Ngoại ngữ</option>
+                    <option class="document-school-page" value="Khoa Khoa học và Công nghệ Giáo dục">Khoa Khoa học và Công nghệ Giáo dục</option>
+                    <option class="document-school-page" value="Khoa Giáo dục Quốc phòng & An ninh">Khoa Giáo dục Quốc phòng & An ninh</option>
+                    <option class="document-school-page" value="Khoa Lý luận Chính trị">Khoa Lý luận Chính trị</option>
+                    <option class="document-school-page" value="Khoa Giáo dục Thể chất">Khoa Giáo dục Thể chất</option>
+                    <option class="document-school-page" value="Viện Kinh tế và Quản lý">Viện Kinh tế và Quản lý</option>
+                </select>
+                <span class="my-document-like"><i class="fa-regular fa-heart"></i> Tài liệu yêu thích</span>
                 <span class="my-document-upload"><i class="fa-regular fa-file"></i> Tài liệu của tôi</span>
                 <span><i class="fa-regular fa-rectangle-list"></i> Chương trình đào tạo</span>
             </div>
         </div>
         <!-- <canvas id="pdfCanvas" width="800" height="600"></canvas> -->
+        <div class="main-content" style="display: flex;">
         <div class="file-container">
             <div class="document-header">
                 
@@ -70,11 +82,17 @@
         </div> 
         <div class="document-info-container">
         </div>
+        </div>
         <div class="main-content" style="display: none;"></div>
     </main>
+    <div class="window"></div>   
+    <div class="description"></div>
+    <div id="notification" class="notification">
+        <span id="notificationText"></span>
+    </div>  
 </body>
+<script src="/js/document/sidebar.js"></script>
 <script src="/js/documentfile.js"></script>
-<script src="/js/document.js"></script>
 <script src="/js/logout.js"></script>
 </html>
 

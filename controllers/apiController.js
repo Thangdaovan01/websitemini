@@ -501,16 +501,22 @@ const updatePost = async (req, res) => {
 }
 
 const deletePost = async (req, res) => {
+    console.log("deletePost");
+
     try {
         // const idRow = req.body.idRow;
         const idPost = req.body.idPost;
-        console.log(idPost);
+        console.log("idPost",idPost);
         if (!idPost) {
             return res.status(400).json({ message: 'Thông tin về dữ liệu bạn muốn xóa không được gửi về server.'});
         }
         const postsArr = await Post.find({  });
         const delPost = postsArr.filter(item => item._id == idPost);
         const delPostId = delPost[0].postId;
+        const delDocId = delPost[0].documentId;
+        console.log("postsArr",postsArr)
+        console.log("delPost",delPost)
+        console.log("delPostId",delPostId)
         const postsArr1 = postsArr.filter(item => !(item._id == idPost));
         const likesArr = await Like.find({  });
         const likePost = likesArr.filter(item => item.likePostId == idPost);
@@ -549,6 +555,20 @@ const deletePost = async (req, res) => {
                 });
             }
         }
+
+        if(delDocId){
+            const checkIndex2 = await client.indices.exists({
+                index: 'documents'  
+            });
+            console.log("checkIndex2",checkIndex2);
+            if(checkIndex2){
+                const response1 = await client.delete({
+                    index: 'documents',
+                    id: delDocId
+                });
+            }
+        }
+
 
         if(delPost){
             await Post.deleteOne({ _id: idPost });
@@ -1027,13 +1047,6 @@ const createDocument = async (req, res) => {
         newPost.createdBy = existingUser._id;
         newPost.updatedBy = null;
 
-        // console.log("newPost.createdBy", existingUser._id);
-        // console.log("newPost", newPost);
-
-        // const excel = new Post(newPost);
-        // await excel.save();
-
-
         // Lưu tài liệu và thông tin vào Elasticsearch
         const checkIndex1 = await client.indices.exists({
             index: 'documents'  
@@ -1229,6 +1242,7 @@ const uploadDocumentFile =  async (req, res) => {
 };
 
 const uploadDocumentImageFile =  async (req, res) => {
+    console.log("uploadDocumentImageFile")
     try {
         res.status(200).json({ filename: req.file.filename });
     } catch (error) {
