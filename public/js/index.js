@@ -11,6 +11,10 @@ var userImageFileName = '';
 var postImageFileName = '';
 var documentFileName = '';
 var imageFileName = '';
+var oldUserImageFileName = '';
+var oldPostImageFileName = '';
+var oldDocumentFileName = '';
+var oldImageFileName = '';
 
 const token = localStorage.getItem('jwtToken');
 
@@ -444,6 +448,7 @@ $(document).ready(function() {
             video: videoValues,
             createdBy: user._id,
             updatedBy: user._id,
+            oldPicture: post1.photo[0],
             postId: post1.postId
         };
         // console.log("updatePost1", updatePost1);
@@ -628,7 +633,11 @@ $(document).ready(function() {
             bio: bio,
             gender: gender,
             birthday: birthday,
+            oldProfilePicture: user.profilePicture,
+            oldCoverPicture: user.coverPicture,
         };
+
+// console.log("updateInfo1",updateInfo1)
 
         if (!confirm('Cập nhật thông tin người dùng')) {
             return

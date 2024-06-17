@@ -14,8 +14,6 @@ const port = 3000;
 //COnnect DB
 db.connect(); 
 
-
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -31,6 +29,39 @@ app.use('/api', apiRouter);
 // route(app);
 
 
-app.listen(port, () => {
+// app.listen(port, () => {
+//     console.log(`Example app listening on port http://localhost:${port}`);
+// })
+const server = app.listen(port, () => {
     console.log(`Example app listening on port http://localhost:${port}`);
 })
+
+
+console.log(`Example app liste`);
+const io = require('socket.io')(server);
+
+let socketsConected = new Set();
+
+io.on('connection', onConnected);
+
+function onConnected(socket) {
+    console.log('Socket connected', socket.id);
+    socketsConected.add(socket.id);
+    io.emit('clients-total', socketsConected.size);
+
+    socket.on('disconnect', () => {
+        console.log('Socket disconnected', socket.id)
+        socketsConected.delete(socket.id)
+        io.emit('clients-total', socketsConected.size)
+    })
+
+    socket.on('message', (data) => {
+        console.log("data",data)
+        socket.broadcast.emit('chat-message', data)
+    })
+    
+    
+    // socket.on('feedback', (data) => {
+    //     socket.broadcast.emit('feedback', data)
+    // })
+}

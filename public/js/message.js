@@ -3,8 +3,15 @@ var currUser = {};
 var friendsArr = [];
 var messageArr = [];
 var messArr = [];
-
+const socket = io()
 const token = localStorage.getItem('jwtToken');
+const clientsTotal = document.getElementById('client-total');
+socket.on('clients-total', (data) => {
+    console.log("data",data)
+    clientsTotal.innerText = `Total Clients: ${data}`
+  })
+
+
  
 $(document).ready(function() {
     //Lấy giá trị user
@@ -107,6 +114,7 @@ $(document).ready(function() {
 
 function createMessage(newMess) {
     console.log('newMess:', newMess);
+    socket.emit('message', newMess);
     fetch('http://localhost:3000/api/message', {
         method: "POST",
         headers: {
@@ -128,15 +136,53 @@ function createMessage(newMess) {
     .then(result => {
         var messages = result.messages;
         console.log("result create messages",messages);
+        addMessageToUI(true, messages)
+        // const listMess = document.getElementById('messagesText');
+        // var messHTML = ``;
+        // var senderId = messages.senderId;
+        // var receiverId = messages.receiverId;
+        // var messageText = messages.messageText;
+        // var createdAt = messages.createdAt;
+        // var formattedDate  = formatDate(createdAt);
+        // messHTML += `
+        //     <div class="message message-sent">
+        //         <div class="message-bubble">
+        //             <p>${messageText}</p>
+        //             <time>${formattedDate}</time>
+        //         </div>
+        //         <div class="avatar message-avatar">
+        //             <img src="/userImg/${currUser.profilePicture}" alt="User Avatar">
+        //         </div>
+        //     </div>
+        //     `
+        // listMess.innerHTML += messHTML;
+    })
+    .catch(error => {
+        console.error('There was a problem with your fetch operation:', error);
+    });
+}
 
-        const listMess = document.getElementById('messagesText');
+socket.on('chat-message', (data) => {
+    console.log('chat-message',data)
+    data.createdAt = Date.now();
+    addMessageToUI(false, data)
+})
+
+function addMessageToUI(isOwnMessage, data) {
+    // clearFeedback()
+    console.log("addMessageToUI",data)
+
+    const listMess = document.getElementById('messagesText');
         var messHTML = ``;
-        var senderId = messages.senderId;
-        var receiverId = messages.receiverId;
-        var messageText = messages.messageText;
-        var createdAt = messages.createdAt;
+        var senderId = data.senderId;
+        var receiverId = data.receiverId;
+        var messageText = data.messageText;
+        // if()
+        var createdAt = data.createdAt;
+        // var createdAt = Date.now;
         var formattedDate  = formatDate(createdAt);
-        messHTML += `
+        if(isOwnMessage == true) {
+            messHTML += `
             <div class="message message-sent">
                 <div class="message-bubble">
                     <p>${messageText}</p>
@@ -147,12 +193,33 @@ function createMessage(newMess) {
                 </div>
             </div>
             `
+        } else if(isOwnMessage == false) {
+            var receiverId = data.senderId;
+            var receiver = usersArr.find(user => user._id == receiverId);
+            console.log('receiverId',receiverId)
+            console.log('receiver',receiver)
+            messHTML += `
+            <div class="message message-received">
+                <div class="avatar message-avatar">
+                    <img src="/userImg/${receiver.profilePicture}" alt="User Avatar">
+                </div>
+                <div class="message-bubble">
+                    <p>${messageText}</p>
+                    <time>${formattedDate}</time>
+                </div>
+            </div>
+            `
+        }
+        
+        
         listMess.innerHTML += messHTML;
-    })
-    .catch(error => {
-        console.error('There was a problem with your fetch operation:', error);
-    });
-}
+    scrollToBottom()
+  }
+  
+  function scrollToBottom() {
+    const listMess = document.getElementById('messagesText');
+    listMess.scrollTo(0, listMess.scrollHeight)
+  }
 
 function getFriendsArr () {
     //Lấy giá trị friends
@@ -229,7 +296,7 @@ function showMessageList(currUserId, friendId){
     })
     .then(result => {
         messArr = result.messages;
-        // console.log("messArr",messArr);
+        console.log("messArr",messArr);
         showMessList(messArr, currUserId, friendId);
     })
     .catch(error => {
@@ -243,7 +310,13 @@ function showMessList(messArr, currUserId, friendId){
     var messHTML = ``;
 
     const friend = usersArr.find(user => user._id == friendId);
+
+    if(!messArr) {
+        listMess.innerHTML = `
+        `;
+    } 
     const length = messArr.length;
+    
     for (let i = 0; i < length; i++) {
         var senderId = messArr[i].senderId;
         var receiverId = messArr[i].receiverId;
@@ -280,6 +353,7 @@ function showMessList(messArr, currUserId, friendId){
         listMess.innerHTML = messHTML;
 
     }
+    scrollToBottom()
 }
  
 
@@ -297,6 +371,8 @@ function showNullMessageContain() {
 }
 
 function showSidebarMess(friendList){
+    // console.log("friendList",friendList);
+    friendList.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
     const friendsList = document.getElementById('friend-list');
     friendsList.innerHTML = '';
     var length = friendList.length;

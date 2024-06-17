@@ -425,6 +425,22 @@ const updatePost = async (req, res) => {
         const token = req.header('Authorize');
         console.log("updatePost",updatePost);
 
+        var newImage = updatePost.photo[0];
+        var oldImage = updatePost.oldPicture;
+
+        if(newImage != oldImage){
+            // Tạo đường dẫn đầy đủ đến file cần xóa
+            const filePath = pathA.resolve(__dirname, '../uploads/postImg', oldImage);
+
+            // Xóa file một cách không đồng bộ
+            fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error('Error deleting the file:', err);
+            } else {
+                console.log('File deleted successfully');
+            }
+            });
+        }
         if (!token) {
             return res.status(401).json({ message: 'Không xác thực được danh tính' })
         }
@@ -447,7 +463,7 @@ const updatePost = async (req, res) => {
                 index: 'posts',
                 id: postId1
             });
-            console.log("documentValue", documentValue);
+            // console.log("documentValue", documentValue);
                 
             if(documentValue){
                 const response = await client.update({
@@ -606,6 +622,43 @@ const updateUserProfile = async (req, res) => {
             return res.status(400).json({   message: 'Dữ liệu được gửi về Server không đầy đủ.' })
         }
 
+        var oldProfilePicture = updateInfo.oldProfilePicture;
+        var profilePicture = updateInfo.profilePicture;
+        var oldCoverPicture = updateInfo.oldCoverPicture;
+        var coverPicture = updateInfo.coverPicture;
+
+        if(oldProfilePicture != profilePicture && oldProfilePicture != 'avatar.jpg'){
+            console.log('Xoá avatar');
+
+            // Tạo đường dẫn đầy đủ đến file cần xóa
+            const filePath = pathA.resolve(__dirname, '../uploads/userImg', oldProfilePicture);
+
+            // Xóa file một cách không đồng bộ
+            fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error('Error deleting the file:', err);
+            } else {
+                console.log('File deleted successfully');
+            }
+            });
+        }
+
+        if(oldCoverPicture != coverPicture && oldCoverPicture != 'cover.jpg'){
+            console.log('Xoá cover');
+
+            // Tạo đường dẫn đầy đủ đến file cần xóa
+            const filePath = pathA.resolve(__dirname, '../uploads/userImg', oldCoverPicture);
+
+            // Xóa file một cách không đồng bộ
+            fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error('Error deleting the file:', err);
+            } else {
+                console.log('File deleted successfully');
+            }
+            });
+        }
+
         const existingUser = await User.findOne({ _id: updateInfo._id });
         // console.log("existingUser",existingUser);
         const userId = existingUser.userId;
@@ -616,7 +669,7 @@ const updateUserProfile = async (req, res) => {
                 index: 'users',
                 id: userId
             });
-            console.log("documentValue", documentValue);
+            // console.log("documentValue", documentValue);
                 
             if(documentValue){
                 const response = await client.update({
