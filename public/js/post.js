@@ -82,7 +82,7 @@ async function fetchPost() {
         // showPostPage (postPage);
         // var postContentContainer = document.querySelector(`.post-content-container`);
         showPost(postPageArr, 'post-container');
-    })
+    }) 
     .catch(error => {
         console.error('There was a problem with your fetch operation:', error);
     });

@@ -1037,10 +1037,10 @@ const updateFriend = async (req, res) => {
             await Friend.updateOne({ _id: updateFriendId }, updateFriend);
             const friendsArr1 = await Friend.find({  });
 
-            var notification = await Notification.findOne({ link: updateFriendId });
-            console.log("notification",notification);
-            var notificationId = notification._id;
-            await Notification.deleteOne({ _id: notificationId });
+            // var notification = await Notification.findOne({ link: updateFriendId });
+            // console.log("notification",notification);
+            // var notificationId = notification._id;
+            // await Notification.deleteOne({ _id: notificationId });
 
             return res.status(200).json({ friendsArr: friendsArr1 });
         }
@@ -1069,6 +1069,14 @@ const deleteFriend = async (req, res) => {
         // console.log("friend",friend);
         // console.log("userId",userId);
         // console.log("friendId",friendId);
+
+        let conversation = await Conversation.findOne({
+			participants: { $all: [userId, friendId] },
+		});
+        const messages = conversation.messages;
+        const ids = messages.map(message => message._id);
+        await Conversation.deleteOne({ _id: conversation._id });
+        await Message.deleteMany({ _id: { $in: ids } });
 
         if(friend){
             await Friend.deleteOne({ _id: friend._id });
@@ -1470,6 +1478,7 @@ const createMessage = async (req, res) => {
 			participants: { $all: [senderId, receiverId] },
 		});
 
+        // console.log("conversation",conversation)
 		if (!conversation) {
 			conversation = await Conversation.create({
 				participants: [senderId, receiverId],

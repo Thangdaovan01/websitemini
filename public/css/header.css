@@ -205,3 +205,14 @@
 .initiator-name {
   font-weight: bold;
 }
+
+.notification-btn .badge {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  display: none;
+  font-size: 12px;
+}

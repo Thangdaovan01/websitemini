@@ -11,8 +11,6 @@ socket.on('clients-total', (data) => {
     clientsTotal.innerText = `Total Clients: ${data}`
   })
 
-
- 
 $(document).ready(function() {
     //Lấy giá trị user
     fetch('http://localhost:3000/api/users', {
@@ -43,6 +41,8 @@ $(document).ready(function() {
         headerContainer.dataset.userId = currUser._id;
         }
         getFriendsArr();
+        // setInterval(getFriendsArr, 5000);
+
     })
     .catch(error => {
         console.error('There was a problem with your fetch operation:', error);

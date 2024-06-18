@@ -6,6 +6,19 @@ var commentsArr = [];
 var friendsArr = [];
 var postsArr = [];
 var postPageArr = [];
+
+
+const notificationsArrProxy = new Proxy(notificationsArr, {
+    set(target, property, value, receiver) {
+        target[property] = value;
+        if (property != 'length') {
+            updateNotificationCount();
+            // showPost(target, 'post-container');
+        }
+        return true;
+    }
+});
+
 $(document).ready(function() {
     //Lấy giá trị user
     fetch('http://localhost:3000/api/user', {
@@ -32,7 +45,9 @@ $(document).ready(function() {
         likesArr = result.likes;
         commentsArr = result.comments;
         friendsArr = result.friends;
-        showNotificationList()
+        // showNotificationList()
+        // Gọi hàm mỗi 10 giây
+        setInterval(showNotificationList, 5000);
     })
     .catch(error => {
         console.error('There was a problem with your fetch operation:', error);
@@ -70,7 +85,34 @@ $(document).ready(function() {
         $('#notificationList').removeClass('active');
         console.log('Post ID:', postId);
     });
+
+    $(document).on('click', '.notification-friend', function(event) { 
+        event.stopPropagation();
+        var friendId = $(this).data('friend-id');
+        var notificationId = $(this).data('notification-id');
+        deleteNotification (notificationId);
+        deleteNotificationHTML(notificationId);
+        window.location.href = 'http://localhost:3000/user?id='+friendId;
+
+        // showPostPage(postId);
+        $('#notificationList').removeClass('active');
+        console.log('Post ID:', postId);
+    });
+
 })
+
+function updateNotificationCount() {
+    const notificationCountElement = document.getElementById('notificationCount');
+    const count = notificationsArr.length;
+    console.log("count",count);
+
+    if (count > 0) {
+        notificationCountElement.textContent = count;
+        notificationCountElement.style.display = 'block';
+    } else {
+        notificationCountElement.style.display = 'none';
+    }
+}
 
 function deleteNotificationHTML(notificationId) {
     const listNotification = document.getElementById('notificationList');
@@ -105,8 +147,6 @@ function showPostPage(postId){
         });
     })
     .then(result => {
-        // postPage = result.post;
-        // console.log("postPage", postPage)
         postPageArr.push(result.post)
         // showPostPage (postPage);
         // var postContentContainer = document.querySelector(`.post-content-container`);
@@ -332,6 +372,7 @@ function showNotificationList () {
         notificationsArr = result.notifications;
         console.log("notificationsArr",notificationsArr);
         // showMessList(messArr, currUserId, friendId);
+        updateNotificationCount();
         notificationsArr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         showNotification1(notificationsArr);
     })
