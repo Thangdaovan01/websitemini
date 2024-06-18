@@ -31,6 +31,7 @@ const Comment = require('../models/Comment')
 const Friend = require('../models/Friend')
 const Message = require('../models/Message')
 const Conversation = require('../models/Conversation')
+const Notification = require('../models/Notification')
 
 const style = [];
 const usersArr = [];
@@ -719,6 +720,8 @@ const createLike = async (req, res) => {
         const userIdToCheck = createLike.userId;
         const likePostIdToCheck = createLike.likePostId;
         const likeCommentIdToCheck = createLike.likeCommentId;
+        // console.log("likePostIdToCheck",likePostIdToCheck);
+        // console.log("likeCommentIdToCheck",likeCommentIdToCheck);
 
         if(likePostIdToCheck){
             if (createLike.userId == '' && createLike.likePostId == '') {
@@ -732,6 +735,18 @@ const createLike = async (req, res) => {
             } else {
                 const like = new Like(createLike);
                 await like.save();
+
+                var post = await Post.findById(likePostIdToCheck);
+                var targetId = post.createdBy;
+                var notification = {
+                    type: 'like',
+                    initiatorId: userIdToCheck,
+                    targetId: targetId,
+                    link: likePostIdToCheck
+                }
+                // console.log("notification",notification);
+                const notification1 = new Notification(notification);
+                await notification1.save();
                 const likeArr1 = await Like.find({  });
                 return res.status(200).json({ likeArr1: likeArr1 });
             }
@@ -750,6 +765,22 @@ const createLike = async (req, res) => {
                 const like1 = new Like(createLike);
                 // console.log("like1",like1);
                 await like1.save();
+
+                var comment = await Comment.findById(likeCommentIdToCheck);
+                // console.log("comment",comment);
+                // var postId = comment.postId;
+                // var post = await Post.findById(postId);
+                var targetId = comment.userId;
+                var notification = {
+                    type: 'comment-like',
+                    initiatorId: userIdToCheck,
+                    targetId: targetId,
+                    link: likeCommentIdToCheck
+                }
+                // console.log("notification",notification);
+                const notification2 = new Notification(notification);
+                await notification2.save();
+
                 const likeArr1 = await Like.find({  });
                 return res.status(200).json({ likeArr1: likeArr1 });
             }
@@ -765,21 +796,45 @@ const deleteLike = async (req, res) => {
     try {
         // const idRow = req.body.idRow;
         const deleteLike = req.body;
+        // console.log("deleteLike",deleteLike)
         const likeArr = await Like.find({  });
         const userIdToCheck = deleteLike.userId;
         const likePostIdToCheck = deleteLike.likePostId;
-        const delLike = likeArr.filter(item => item.userId == userIdToCheck && item.likePostId == likePostIdToCheck);
-        const likeArr1 = likeArr.filter(item => !(item.userId == userIdToCheck && item.likePostId == likePostIdToCheck));
-
-        // console.log("delLike._id",delLike[0]._id);
-        const delLikeId = delLike[0]._id;
+        const likeCommentIdToCheck = deleteLike.likeCommentId;
+        
+        
         if (deleteLike.userId == '' && deleteLike.likePostId == 0) {
             return res.status(400).json({ message: 'Thông tin về dữ liệu bạn muốn xóa không được gửi về server.'});
         }
-        if(delLike){
-            await Like.deleteOne({ _id: delLikeId });
+        if(likePostIdToCheck){
+            const delPostLike = likeArr.filter(item => item.userId == userIdToCheck && item.likePostId == likePostIdToCheck);
+            const likeArr1 = likeArr.filter(item => !(item.userId == userIdToCheck && item.likePostId == likePostIdToCheck));
+            // console.log("delPostLike",delPostLike);
+            const delPostLikeId = delPostLike[0]._id;
+            await Like.deleteOne({ _id: delPostLikeId });
+            var notification = await Notification.findOne({ link: likePostIdToCheck });
+            // console.log("notification",notification);
+            var notificationId = notification._id;
+            await Notification.deleteOne({ _id: notificationId });
+
             // const likeArr1 = await Like.find({  });
             return res.status(200).json({ likeArr1: likeArr1 });
+        }
+
+        if(likeCommentIdToCheck){
+            const delCommentLike = likeArr.filter(item => item.userId == userIdToCheck && item.likeCommentId == likeCommentIdToCheck);
+            const likeArr2 = likeArr.filter(item => !(item.userId == userIdToCheck && item.likeCommentId == likeCommentIdToCheck));
+            // console.log("delCommentLike",delCommentLike);
+            // console.log("delLike._id",delLike[0]._id);
+            const delCommentLikeId = delCommentLike[0]._id;
+
+            await Like.deleteOne({ _id: delCommentLikeId });
+            var notification = await Notification.findOne({ link: likeCommentIdToCheck });
+            // console.log("notification",notification);
+
+            var notificationId = notification._id;
+            await Notification.deleteOne({ _id: notificationId });            
+            return res.status(200).json({ likeArr1: likeArr2 });
         }
         
     } catch (error) {
@@ -793,7 +848,9 @@ const createComment = async (req, res) => {
         const newComment = req.body;
         const token = req.header('Authorize');
         // console.log("token",token);
-        console.log("newComment",newComment);
+        // console.log("newComment",newComment);
+        const userId = newComment.userId;
+        const postId = newComment.postId;
 
         if (!token) {
             return res.status(401).json({ message: 'Không xác thực được danh tính' })
@@ -810,6 +867,19 @@ const createComment = async (req, res) => {
 
         const comment = new Comment(newComment);
         await comment.save();
+
+        var post = await Post.findById(postId);
+        var targetId = post.createdBy;
+        var notification = {
+            type: 'comment',
+            initiatorId: userId,
+            targetId: targetId,
+            link: comment._id
+        }
+        // console.log("notification",notification);
+        const notification1 = new Notification(notification);
+        await notification1.save();
+
         return res.status(200).json({ message: 'Đã thêm comment mới.' });
         
     } catch (error) {
@@ -858,6 +928,7 @@ const deleteComment = async (req, res) => {
 
         const commentArr = await Comment.find({  });
         const commentValue = commentArr.find(element => element._id == idComment);
+        // console.log("commentValue",commentValue);
         const commentArr1 = commentArr.filter(element => element._id !== idComment);
         
         const commentReply = commentArr.filter(item => item.repCommentId == idComment);
@@ -874,6 +945,12 @@ const deleteComment = async (req, res) => {
 
         if(commentValue){
             await Comment.deleteOne({ _id: idComment });
+
+            var notification = await Notification.findOne({ link: idComment });
+            // console.log("notification",n/otification);
+            var notificationId = notification._id;
+            await Notification.deleteOne({ _id: notificationId });
+
             return res.status(200).json({ commentArr1: commentArr1 });
         }
 
@@ -901,7 +978,9 @@ const createFriend = async (req, res) => {
         const newFriend = req.body;
         const token = req.header('Authorize');
         // console.log("token",token);
-        // console.log("newFriend",newFriend);
+        console.log("newFriend",newFriend);
+        const initiatorId = newFriend.userId;
+        const targetId = newFriend.friendId;
 
         if (!token) {
             return res.status(401).json({ message: 'Không xác thực được danh tính' })
@@ -918,6 +997,17 @@ const createFriend = async (req, res) => {
 
         const friend = new Friend(newFriend);
         await friend.save();
+
+        var notification = {
+            type: 'friend',
+            initiatorId: initiatorId,
+            targetId: targetId,
+            link: friend._id
+        }
+        // console.log("notification",notification);
+        const notification1 = new Notification(notification);
+        await notification1.save();
+
         return res.status(200).json({ message: 'Đã thêm comment mới.' });
         
     } catch (error) {
@@ -945,7 +1035,13 @@ const updateFriend = async (req, res) => {
         const friendsValue = friendsArr.find(element => element._id == updateFriendId);
         if(friendsValue){
             await Friend.updateOne({ _id: updateFriendId }, updateFriend);
-            const friendsArr1 = await Comment.find({  });
+            const friendsArr1 = await Friend.find({  });
+
+            var notification = await Notification.findOne({ link: updateFriendId });
+            console.log("notification",notification);
+            var notificationId = notification._id;
+            await Notification.deleteOne({ _id: notificationId });
+
             return res.status(200).json({ friendsArr: friendsArr1 });
         }
         
@@ -977,12 +1073,27 @@ const deleteFriend = async (req, res) => {
         if(friend){
             await Friend.deleteOne({ _id: friend._id });
             const friend1 = friendArr.filter(f => !(f.userId == userId && f.friendId == friendId));
+
+            var notification = await Notification.findOne({ link: friend._id });
+            // console.log("notification",notification);
+            if(notification){
+                var notificationId = notification._id;
+                await Notification.deleteOne({ _id: notificationId });
+            }
+            
             return res.status(200).json({ friendsArr: friend1 });
         }
 
         if(friend2){
             await Friend.deleteOne({ _id: friend2._id });
             const friend3 = friendArr.filter(f => !(f.userId == friendId && f.friendId == userId));
+
+            var notification = await Notification.findOne({ link: friend2._id });
+            if(notification){
+                var notificationId = notification._id;
+                await Notification.deleteOne({ _id: notificationId });
+            }
+
             return res.status(200).json({ friendsArr: friend3 });
         }
     } catch (error) {
@@ -1441,6 +1552,47 @@ const createConversation = async (req, res) => {
     }
 }
 
+const getNotifications = async (req, res) => {
+    try {
+        const notifications = await Notification.find({  });
+        return res.status(200).json({notifications : notifications });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+const getNotification = async (req, res) => {
+    try {
+        const userId = req.header('userId');
+        const notifications = await Notification.find({ targetId : userId, unread: true });
+        return res.status(200).json({notifications : notifications });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi từ phía server.' });
+    }
+}
+
+const deleteNotification = async (req, res) => {
+    try {
+        // const idRow = req.body.idRow;
+        const notificationId = req.body.notificationId;
+        
+        const notification = await Notification.findById(notificationId);
+        
+        if(notification){
+            await Notification.deleteOne({ _id: notificationId });
+            // const likeArr1 = await Like.find({  });
+            return res.status(200).json({ message: 'Xoá thành công' });
+        }
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi từ phía server' });
+    }
+}
 
 
 module.exports = {
@@ -1454,5 +1606,5 @@ module.exports = {
     createDocument, getDocuments, getDocument, getSearchDocument, updateDocument,
     uploadDocumentFile, uploadDocumentImageFile,
     getMessages, createMessage, deleteMessage, getMessage,
-    getConversations,
+    getConversations, getNotifications, getNotification, deleteNotification
 }

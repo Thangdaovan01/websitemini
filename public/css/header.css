@@ -143,15 +143,65 @@
     display: flex;
     align-items: center;
     position: fixed;
-    right: 15px;
+    right: 10px;
     height: 56px;
     
   }
+
+  .notification-container {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    right: 65px;
+    height: 56px;
+    /* background-color: transparent;
+    color: #fff; */
+  }
   
-  .logout-container button, .messages-container button, .messages-btn {
+  .logout-container button, .messages-container button, .messages-btn, .notification-container button {
     background-color: transparent;
     color: #fff;
     font-size: 24px;
     border: 0;
   }
+
+
+/* .notification-container {
+    position: relative;
+} */
+
+.notification-btn {
+    background-color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.notification-list {
+    display: none;
+    position: absolute;
+    top: 40px;
+    right: -65px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    width: 300px;
+}
+
+.notification-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    font-size: 12px;
+}
+
+.notification-item:hover {
+    background-color: #f1f1f1;
+}
+
+.notification-list.active {
+    display: block;
+}
   
+.initiator-name {
+  font-weight: bold;
+}

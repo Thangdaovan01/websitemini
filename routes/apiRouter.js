@@ -49,6 +49,10 @@ apiRouter.put('/document', apiController.updateDocument);
 apiRouter.get('/documents', apiController.getDocuments); 
 apiRouter.get('/document/:id', apiController.getDocument); 
 
+apiRouter.get('/notifications', apiController.getNotifications); 
+apiRouter.get('/notification', apiController.getNotification); 
+apiRouter.delete('/notification', apiController.deleteNotification);
+
 
 const multer = require('multer');
 
